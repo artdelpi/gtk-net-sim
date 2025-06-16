@@ -1,10 +1,17 @@
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
+import matplotlib
+matplotlib.use("GTK3Agg")
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
+import queue
 
 class Simulador(Gtk.Window):
-    def __init__(self):
-        
+    def __init__(self, in_queue: queue, out_queue: queue):
+        self.in_queue = in_queue
+        self.out_queue = out_queue
+
         Gtk.Window.__init__(self, title="Simulador de Camada Física / Enlace")
         self.set_default_size(1000, 600)
 
@@ -87,36 +94,81 @@ class Simulador(Gtk.Window):
         for i, (label, widget) in enumerate(widgets):
             add_row(label, widget, i)
 
+        
         notebook = Gtk.Notebook()
 
-        aba_texto = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, margin=10)
+        self.aba_aplicacao = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, margin=10)
+        self.aba_enlace = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, margin=10)
+        self.figuras = [] 
+        self.aba_graficos = Gtk.Grid(column_spacing=10, row_spacing=10, margin=10)
 
-        notebook.append_page(aba_texto, Gtk.Label(label="Resultados Textuais"))
-
-        aba_graficos = Gtk.Grid(column_spacing=10, row_spacing=10, margin=10)
-        for i in range(2):
-            for j in range(2):
-                drawing_area = Gtk.DrawingArea()
-                drawing_area.set_size_request(200, 150)
-                aba_graficos.attach(drawing_area, j, i, 1, 1)
-        notebook.append_page(aba_graficos, Gtk.Label(label="Gráficos de Sinal"))
+        notebook.append_page(self.aba_aplicacao, Gtk.Label(label="Camada de Aplicação"))
+        notebook.append_page(self.aba_enlace, Gtk.Label(label="Camada Enlace"))
+        notebook.append_page(self.aba_graficos, Gtk.Label(label="Camada Física"))
+        
 
         main_box.pack_start(config_frame, False, False, 10)
         main_box.pack_start(notebook, True, True, 10)
+        
+        GLib.timeout_add(100, self.atualizar_saidas)  # checa fila a cada 100ms
+
     
     def on_simular_clicked(self, widget):
-        print(f'''                Entrada de texto: {self.entrada_texto.get_text()}
-                Tamanho máximo de quadro: {self.tamanho_quadro.get_value_as_int()},
-                Tamanho do EDC: {self.edc.get_value_as_int()}
-                Tipo de enquadramento: {self.enquadramento.get_active_text()}
-                Tipo de enquadramento: {self.enquadramento.get_active_text()}
-                Tipo de detecção ou correção: {self.detecao.get_active_text()}
-                Tipo de modulação digital: {self.mod_digital.get_active_text()}
-                Tipo de modulação analógica: {self.mod_analogica.get_active_text()}
-                Taxa de erros: {self.erros.get_value_as_int()}
-            ''') 
+        #Limpa os gráficos
+        for box in [self.aba_aplicacao, self.aba_enlace]:
+            for child in box.get_children():
+                box.remove(child)
+        self.figuras.clear()
 
-win = Simulador()
-win.connect("destroy", Gtk.main_quit)
-win.show_all()
-Gtk.main()
+        for canvas in self.figuras:
+            self.aba_graficos.remove(canvas)
+
+        self.out_queue.put({
+            "entrada": self.entrada_texto.get_text(),
+            "quadro": self.tamanho_quadro.get_value_as_int(),
+            "edc": self.edc.get_value_as_int(),
+            "enquadramento": self.enquadramento.get_active_text(),
+            "detecao": self.detecao.get_active_text(),
+            "mod_digital": self.mod_digital.get_active_text(),
+            "mod_analogica": self.mod_analogica.get_active_text(),
+            "erros": self.erros.get_value_as_int()
+        })
+    
+    def atualizar_saidas(self):
+        try:
+            while True:
+                camada, dado = self.in_queue.get_nowait()
+
+                if camada == "aplicacao" and isinstance(dado, str):
+                    label = Gtk.Label(label=dado)
+                    self.aba_aplicacao.pack_start(label, False, False, 5)
+                    label.show_all()
+
+                elif camada == "enlace" and isinstance(dado, str):
+                    label = Gtk.Label(label=dado)
+                    self.aba_enlace.pack_start(label, False, False, 5)
+                    label.show_all()
+
+                elif camada == "fisica" and isinstance(dado, Figure):
+                    canvas = FigureCanvas(dado)
+                    canvas.set_size_request(400, 300) 
+                    self.figuras.append(canvas)
+                    linha = len(self.figuras) // 2
+                    coluna = len(self.figuras) % 2
+                    self.aba_graficos.attach(canvas, coluna, linha, 1, 1)
+                    self.aba_graficos.show_all()
+
+        except queue.Empty:
+            pass
+        return True 
+
+class GUI:
+    def __init__(self, in_queue, out_queue):
+        self.in_queue = in_queue
+        self.out_queue = out_queue
+
+    def start(self):
+        win = Simulador(self.in_queue, self.out_queue)
+        win.connect("destroy", Gtk.main_quit)
+        win.show_all()
+        Gtk.main()
