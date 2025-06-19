@@ -55,8 +55,9 @@ class Simulador(Gtk.Window):
         self.erros.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
 
         tipos_enquadramento = [
-            "1",
-            "2"
+            "Contagem de caracteres",
+            "FLAGS e inserção de bytes ou caracteres",
+            "FLAGS Inserção de bits"
         ]
         for tipo_enquadramento in tipos_enquadramento:
             self.enquadramento.append_text(tipo_enquadramento)
@@ -73,8 +74,9 @@ class Simulador(Gtk.Window):
         self.detecao.set_active(0)
 
         tipos_modulacao_analogica = [
-            "Tipo 1",
-            "Tipo 2"
+            "ASK",
+            "FSK",
+            "8-QAM"
         ]
         for tipo_modulacao_analogica in tipos_modulacao_analogica:
             self.mod_analogica.append_text(tipo_modulacao_analogica)
@@ -82,8 +84,9 @@ class Simulador(Gtk.Window):
         self.mod_analogica.set_active(0)
 
         tipos_modulacao_digital = [
-            "A",
-            "B"
+            "NRZ-Polar",
+            "Manchester",
+            "Bipolar"
         ]
         for tipo_modulacao_digital in tipos_modulacao_digital:
             self.mod_digital.append_text(tipo_modulacao_digital)
