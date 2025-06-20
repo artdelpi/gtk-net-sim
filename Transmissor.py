@@ -14,7 +14,7 @@ class Transmissor:
    
     def start(self):
         while True:
-            data = self.in_queue.get()
+            data = self.in_queue.get() # Recebe dicionário com dados de transmissão (mensagem, enquadramento, modulação)
 
             if data == "SAIR":
                 print("Transmissor encerrando...")
@@ -22,7 +22,7 @@ class Transmissor:
             else:
                 msg = data["entrada"]
 
-                encoded_msg = msg.encode("utf-8")
+                encoded_msg = msg.encode("utf-8") # Exemplo: mensagem -> b'mensagem'
                 self.gui_queue.put(["aplicacao", f'Mensagem a ser Enviada: {msg}'])
                 self.gui_queue.put(["aplicacao", f'Mensagem em bytes: {byte_formarter(encoded_msg)}'])
                 
@@ -35,3 +35,32 @@ class Transmissor:
                 modulated_signal = CamadaFisica.modulador(data["mod_analogica"], encoded_signal)
                 self.gui_queue.put(["fisica", graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}')])
 
+
+#  =============================
+#         DEPURAÇÃO LOCAL
+#  =============================
+
+if __name__ == "__main__":
+    # Cria as filas de comunicação
+    in_queue = Queue()
+    gui_queue = Queue()
+
+    # Define os dados de entrada (simulando a camada de aplicação)
+    data = {
+        "entrada": "teste",                         # Mensagem que será transmitida
+        "enquadramento": "Contagem de caracteres",  # Tipo de enquadramento
+        "mod_digital": "NRZ-Polar",                 # Tipo de modulação digital
+        "mod_analogica": "FSK"                      # Tipo de modulação analógica
+    }
+
+    # Coloca os dados na fila de entrada do transmissor
+    in_queue.put(data)
+    in_queue.put("SAIR") # Encerra depois de uma execução
+
+    # Instancia o transmissor e inicia
+    transmissor = Transmissor(in_queue, gui_queue)
+    transmissor.start()
+
+    # Imprime todos os valores da fila GUI (resultado das etapas de transmissão)
+    while not transmissor.gui_queue.empty():
+        print(transmissor.gui_queue.get())

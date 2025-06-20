@@ -175,3 +175,12 @@ class GUI:
         win.connect("destroy", Gtk.main_quit)
         win.show_all()
         Gtk.main()
+
+if __name__ == "__main__":
+    import queue
+
+    in_queue = queue.Queue()
+    out_queue = queue.Queue()
+
+    gui = GUI(in_queue, out_queue)
+    gui.start()

@@ -1,0 +1,1 @@
+# Inverte a pilha de transformações
