@@ -34,7 +34,7 @@ class CamadaFisica:
         return modulated_msg
     
 
-    def codificar_nrz_polar(dado: bytes) -> list:
+    def codificar_nrz_polar(dado: bytes) -> list[int]:
         """
         Transforma sequência de bytes em um sinal codificado NRZ-Polar.
 
@@ -65,14 +65,50 @@ class CamadaFisica:
         return sinal
 
 
-    def codificar_manchester(dado:bytes) -> list:
+    def codificar_manchester(dado:bytes) -> list[int]:
         """
-        Comentário...
+        Transforma sequência de bytes em um sinal codificado Manchester.
+
+        Dinâmica da codificação:
+            Bit XOR CLK: 
+            Bit 0 CLK 0 → 0
+            Bit 0 CLK 1 → 1
+            Bit 1 CLK 0 → 1
+            Bit 1 CLK 1 → 0
+        
+        Funcionamento:
+        • Converte bytes (ex: b'teste') em string de bits (ex: '01000001 01100101...').
+        • Remove espaços na string de bits.
+        • Monta um sinal clock de duas vezes o tamanho da palavra de bits.
+        • Para cada par de bit do clock, faz o XOR com a entrada de bit
+        • Retorna a lista com a codificação manchester
+
+        Parâmetro:
+        • dado (bytes): Um quadro da camada de enlace.
+
+        Retorna:
+        • list[int]: Lista com o sinal Manchester.
+
+        Exemplo:
+            Entrada b"A" → bits "0101001"
+            Saída → [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0]
         """
-        pass
+        bits_str = Utils.byte_formarter(dado).replace(' ', '')
+        clock = '01' * len(bits_str)
+        print(clock)
+        sinal = []
+        for bit in range(0,len(bits_str)):
+           bit1 = int(bits_str[bit]) ^ int(clock[2*bit])
+           bit2 = int(bits_str[bit]) ^ int(clock[(2*bit) + 1]) 
+           sinal.append(bit1)
+           sinal.append(bit2)
+        print(sinal)
+        return sinal
+
+             
 
 
-    def codificar_bipolar(dado:bytes) -> list:
+    def codificar_bipolar(dado:bytes) -> list[int]:
         """
         Comentário...
         """

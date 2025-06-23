@@ -121,10 +121,10 @@ class Simulador(Gtk.Window):
         for box in [self.aba_aplicacao, self.aba_enlace]:
             for child in box.get_children():
                 box.remove(child)
-        self.figuras.clear()
 
         for canvas in self.figuras:
             self.aba_graficos.remove(canvas)
+        self.figuras = []
 
         self.out_queue.put({
             "entrada": self.entrada_texto.get_text(),

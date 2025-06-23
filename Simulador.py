@@ -1,8 +1,6 @@
 from queue import Queue
 from threading import Thread
 from InterfaceGUI import GUI
-from matplotlib.figure import Figure
-import numpy as np
 from Transmissor import Transmissor
 
 

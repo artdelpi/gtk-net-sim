@@ -15,7 +15,7 @@ class Transmissor:
     def start(self):
         while True:
             data = self.in_queue.get() # Recebe dicionário com dados de transmissão (mensagem, enquadramento, modulação)
-
+            print(data)
             if data == "SAIR":
                 print("Transmissor encerrando...")
                 break
