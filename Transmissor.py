@@ -30,10 +30,10 @@ class Transmissor:
                 self.gui_queue.put(["enlace", f'Mensagem Enquadrada: {byte_formarter(framed_msg)}'])
                 
                 encoded_signal = CamadaFisica.codficador_banda_base(data["mod_digital"], framed_msg)
-                self.gui_queue.put(["fisica", graph_generator(data=encoded_signal, title=f'Sinal Codificado em {data["mod_digital"]}')])
+                self.gui_queue.put(["fisica", graph_generator(data=encoded_signal, title=f'Sinal Codificado em {data["mod_digital"]}', signal_type='sinal_banda_base')])
                 
                 modulated_signal = CamadaFisica.modulador(data["mod_analogica"], encoded_signal)
-                self.gui_queue.put(["fisica", graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}')])
+                self.gui_queue.put(["fisica", graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}', signal_type='sinal_analogico')])
 
 
 #  =============================

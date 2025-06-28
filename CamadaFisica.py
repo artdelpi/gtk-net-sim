@@ -1,4 +1,5 @@
 import Utils
+import numpy as np
 
 class CamadaFisica:
     def codficador_banda_base(tipo, dado):
@@ -25,16 +26,16 @@ class CamadaFisica:
     def modulador(tipo, dado):
         modulated_msg = ''
         if(tipo == "FSK"):
-            print(tipo)
+            return CamadaFisica.modular_fsk(dado)
         elif(tipo == "ASK"):
-            print(tipo)
+            print("Falta implementar")
         elif(tipo == "8-QAM"):
-            print(tipo)
+            print("Falta implementar")
         
         return modulated_msg
     
 
-    def codificar_nrz_polar(dado: bytes) -> list[int]:
+    def codificar_nrz_polar(dado: bytes) -> list:
         """
         Transforma sequência de bytes em um sinal codificado NRZ-Polar.
 
@@ -65,7 +66,7 @@ class CamadaFisica:
         return sinal
 
 
-    def codificar_manchester(dado:bytes) -> list[int]:
+    def codificar_manchester(dado:bytes) -> list:
         """
         Transforma sequência de bytes em um sinal codificado Manchester.
 
@@ -80,8 +81,8 @@ class CamadaFisica:
         • Converte bytes (ex: b'teste') em string de bits (ex: '01000001 01100101...').
         • Remove espaços na string de bits.
         • Monta um sinal clock de duas vezes o tamanho da palavra de bits.
-        • Para cada par de bit do clock, faz o XOR com a entrada de bit
-        • Retorna a lista com a codificação manchester
+        • Para cada par de bit do clock, faz o XOR com a entrada de bit.
+        • Retorna a lista com a codificação manchester.
 
         Parâmetro:
         • dado (bytes): Um quadro da camada de enlace.
@@ -106,20 +107,38 @@ class CamadaFisica:
         return sinal
 
              
-
-
-    def codificar_bipolar(dado:bytes) -> list[int]:
+    def codificar_bipolar(dado:bytes) -> list:
         """
         Comentário...
         """
         pass
 
 
-    def modular_fsk(sinal_digital:list) -> list:
+    def modular_fsk(sinal_digital: list, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
         """
-        Comentário...
+        Modula um sinal digital usando FSK (Frequency Shift Keying).
+        
+        Parâmetros:
+        • sinal_digital: lista com bits (0s e 1s).
+        • f0: frequência para bit 0 (em Hz).
+        • f1: frequência para bit 1 (em Hz).
+        • amostras_por_bit: número de amostras (pontos no gráfico) por bit.
+        • fs: frequência de amostragem (em Hz).
+
+        Retorna:
+        • Lista com o sinal FSK modulado (amostrado).
         """
-        pass
+        dt = 1 / fs  # Tempo entre amostras
+        fase = 0     # Fase acumulada
+        sinal_modulado = []
+
+        for bit in sinal_digital:
+            freq = f1 if bit == 1 else f0
+            for _ in range(amostras_por_bit):
+                fase += 2 * np.pi * freq * dt
+                sinal_modulado.append(np.sin(fase))
+
+        return sinal_modulado
 
 
     def modular_ask(sinal_digital:list) -> list:
@@ -130,7 +149,9 @@ class CamadaFisica:
 
 
     def modular_8qam(sinal_digital:list) -> list:
+
         """
         Comentário...
         """
         pass
+

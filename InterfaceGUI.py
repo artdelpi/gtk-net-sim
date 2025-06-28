@@ -154,13 +154,13 @@ class Simulador(Gtk.Window):
 
                 elif camada == "fisica" and isinstance(dado, Figure):
                     canvas = FigureCanvas(dado)
+                    canvas.set_hexpand(True)
                     canvas.set_size_request(400, 300) 
                     self.figuras.append(canvas)
-                    linha = len(self.figuras) // 2
-                    coluna = len(self.figuras) % 2
-                    self.aba_graficos.attach(canvas, coluna, linha, 1, 1)
+                    linha = len(self.figuras) - 1  # Uma linha por gráfico
+                    coluna = 0  # Sempre começa na primeira coluna
+                    self.aba_graficos.attach(canvas, coluna, linha, 2, 1)
                     self.aba_graficos.show_all()
-
         except queue.Empty:
             pass
         return True 
