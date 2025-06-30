@@ -23,6 +23,17 @@ class CamadaFisica:
         return encoded_msg # Codificação não especificada
    
    
+    def decodificador_banda_base(tipo, dado):
+        decoded_msg = ''
+        if(tipo == "NRZ-Polar"):
+            print("Falta implementar")
+        elif(tipo == "Manchester"):
+            print("Falta implementar")
+        elif(tipo == "Bipolar"):
+            print("Falta implementar")
+        return decoded_msg # Codificação não especificada
+
+
     def modulador(tipo, dado):
         modulated_msg = ''
         if(tipo == "FSK"):
@@ -34,6 +45,18 @@ class CamadaFisica:
         
         return modulated_msg
     
+
+    def demodulador(tipo, dado):
+        demodulated_msg = ''
+        if (tipo == "FSK"):
+            print("Falta implementar")
+        elif(tipo == "ASK"):
+            print("Falta implementar")
+        elif(tipo == "8-QAM"):
+            print("Falta implementar")
+        
+        return demodulated_msg
+
 
     def codificar_nrz_polar(dado: bytes) -> list:
         """
@@ -64,6 +87,13 @@ class CamadaFisica:
         # Faz o mapeamento 0 → -1 e 1 → +1
         sinal = [1 if bit == '1' else -1 for bit in bits_str]
         return sinal
+
+
+    def decodificar_nrz_polar(sinal_digital:list) -> bytes:
+        """
+        Comentário...
+        """
+        pass
 
 
     def codificar_manchester(dado:bytes) -> list:
@@ -106,8 +136,22 @@ class CamadaFisica:
         print(sinal)
         return sinal
 
-             
+
+    def decodificar_manchester(sinal_digital:list) -> bytes:
+        """
+        Comentário...
+        """
+        pass
+
+
     def codificar_bipolar(dado:bytes) -> list:
+        """
+        Comentário...
+        """
+        pass
+
+
+    def decodificar_bipolar(sinal_digital:list) -> bytes:
         """
         Comentário...
         """
@@ -141,7 +185,21 @@ class CamadaFisica:
         return sinal_modulado
 
 
+    def demodular_fsk(sinal_alogico:list) -> list:
+        """
+        Comentário...
+        """
+        pass
+
+
     def modular_ask(sinal_digital:list) -> list:
+        """
+        Comentário...
+        """
+        pass
+
+
+    def demodular_ask(sinal_alogico:list) -> list:
         """
         Comentário...
         """
@@ -155,3 +213,9 @@ class CamadaFisica:
         """
         pass
 
+
+    def demodular_8qam(sinal_analogico:list) -> list:
+        """
+        Comentário...
+        """
+        pass

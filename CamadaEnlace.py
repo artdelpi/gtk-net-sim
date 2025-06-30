@@ -21,6 +21,18 @@ class Enlace:
         return framed_msg
 
 
+    def desenquadramento(tipo, dado) -> bytes:
+        unframed_msg = ''
+        if(tipo == "Contagem de caracteres"):
+            print("Falta implementar")
+        elif(tipo == "FLAGS e inserção de bytes ou caracteres"):
+            print("Falta implementar")
+        elif(tipo == "FLAGS Inserção de bits"):
+            print("Falta implementar")
+        
+        return unframed_msg
+
+
     def enquadrar_contagem_caracteres(dado:bytes) -> bytes:
         """
         Enquadramento por contagem de caracteres.
@@ -48,15 +60,37 @@ class Enlace:
         return quadro
 
 
-    def enquadrar_flag_insercao_byte(dado):
+    def desenquadrar_contagem_caracteres(quadro:bytes) -> bytes:
         """
         Comentário...
         """
         pass
 
 
-    def enquadrar_flag_insercao_bit(dado):
+    def enquadrar_flag_insercao_byte(dado:bytes) -> bytes:
         """
         Comentário...
         """
         pass
+
+
+    def desenquadrar_flag_insercao_byte(quadro:bytes) -> bytes:
+        """
+        Comentário...
+        """
+        pass
+
+
+    def enquadrar_flag_insercao_bit(dado:bytes) -> bytes:
+        """
+        Comentário...
+        """
+        pass
+    
+
+    def desenquadrar_flag_insercao_bit(quadro:bytes) -> bytes:
+        """
+        Comentário...
+        """
+        pass
+        
