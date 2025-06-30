@@ -65,8 +65,9 @@ class Simulador(Gtk.Window):
         self.enquadramento.set_active(0)
 
         tipos_detecao = [
-            "Tipo 1",
-            "Tipo 2"
+            "Bit de paridade par",
+            "CRC", 
+            "Hamming"
         ]
         for tipo_detecao in tipos_detecao:
             self.detecao.append_text(tipo_detecao)

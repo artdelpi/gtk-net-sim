@@ -49,7 +49,7 @@ class CamadaFisica:
     def demodulador(tipo, dado):
         demodulated_msg = ''
         if (tipo == "FSK"):
-            print("Falta implementar")
+            return CamadaFisica.demodular_fsk(dado)
         elif(tipo == "ASK"):
             print("Falta implementar")
         elif(tipo == "8-QAM"):
@@ -185,10 +185,7 @@ class CamadaFisica:
         return sinal_modulado
 
 
-    def demodular_fsk(sinal_alogico:list) -> list:
-        """
-        Comentário...
-        """
+    def demodular_fsk(sinal_modulado, f0=2, f1=5, amostras_por_bit=100, fs=800):
         pass
 
 
