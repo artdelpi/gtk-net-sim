@@ -83,16 +83,97 @@ class Enlace:
 
     def enquadrar_flag_insercao_bit(dado:bytes) -> bytes:
         """
-        Comentário...
+        Enquadra os dados usando a técnica de bit stuffing com flag 0x7E (01111110).
+
+        - Insere um 0 após 5 bits 1 consecutivos para evitar sequência de flag.
+        - Garante que o byte 0x7E nunca apareça dentro do quadro, somente nas extremidades.
+
+        Parâmetro:
+        dados (bytes): conteúdo da carga útil.
+
+        Retorna:
+        bytes: quadro enquadrado com flags e bit stuffing aplicado.
         """
-        pass
+        FLAG = b'\x7E'
+
+        bit_str = ''.join(f'{byte:08b}' for byte in dado)
+
+        bits_preenchidos = []
+        cont_1bit = 0
+
+        for bit in bit_str:
+            if bit == '1':
+                cont_1bit += 1
+            else:
+                cont_1bit = 0
+
+            bits_preenchidos.append(bit)
+
+            if cont_1bit == 5:
+                bits_preenchidos.append('0')
+                cont_1bit = 0
+
+        while len(bits_preenchidos) % 8 != 0:
+            
+            bits_preenchidos.append('0')
+
+        bytes_preenchidos = bytes(
+            int(''.join(bits_preenchidos[i:i+8]), 2)
+            for i in range(0, len(bits_preenchidos), 8)
+        )
+        return FLAG + bytes_preenchidos + FLAG
     
 
     def desenquadrar_flag_insercao_bit(quadro:bytes) -> bytes:
-        """
-        Comentário...
-        """
         pass
+    
+    
+    def hamming(dado: bytes) -> bytes:
+        """
+        Codifica os dados usando o código de Hamming (7,4).
+
+        Parâmetros:
+        • data (bytes): Dados de entrada a serem codificados, byte a byte.
+
+        Retorna:
+        • bytes: Dados codificados com código Hamming (7,4)
+        """
+        def calcular_bits_paridade(bits_dados):
+            p1 = bits_dados[0] ^ bits_dados[1] ^ bits_dados[3]
+            p2 = bits_dados[0] ^ bits_dados[2] ^ bits_dados[3]
+            p3 = bits_dados[1] ^ bits_dados[2] ^ bits_dados[3]
+            return p1, p2, p3
+
+        codificacao_bytes = []
+
+        for byte in dado:
+
+            nibbles = [(byte >> 4) & 0b1111, byte & 0b1111]
+
+            for nibble in nibbles:
+                bits_dados = [(nibble >> j) & 1 for j in range(3, -1, -1)]
+
+                p1, p2, p3 = calcular_bits_paridade(bits_dados)
+
+                bloco_hamming = [
+                    p1,
+                    p2,
+                    bits_dados[0],
+                    p3,
+                    bits_dados[1],
+                    bits_dados[2],
+                    bits_dados[3]
+                ]
+
+                byte_codificado = 0
+                for i, bit in enumerate(bloco_hamming):
+                    byte_codificado |= bit << (6 - i)
+                
+                codificacao_bytes.append(byte_codificado)
+
+        return bytes(codificacao_bytes)
+
+
         
 
     def bit_de_paridade_par(quadro:bytes) -> bytes:
@@ -159,8 +240,4 @@ class Enlace:
 
 
     def crc():
-        pass
-
-
-    def hamming():
         pass

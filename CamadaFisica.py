@@ -30,7 +30,7 @@ class CamadaFisica:
         elif(tipo == "Manchester"):
             print("Falta implementar")
         elif(tipo == "Bipolar"):
-            print("Falta implementar")
+            return CamadaFisica.decodificar_bipolar(dado)
         return decoded_msg # Codificação não especificada
 
 
@@ -41,7 +41,7 @@ class CamadaFisica:
         elif(tipo == "ASK"):
             print("Falta implementar")
         elif(tipo == "8-QAM"):
-            print("Falta implementar")
+            return CamadaFisica.modular_8qam(dado)
         
         return modulated_msg
     
@@ -146,16 +146,62 @@ class CamadaFisica:
 
     def codificar_bipolar(dado:bytes) -> list:
         """
-        Comentário...
+        Transforma uma sequência de bytes em um sinal codificado no formato bipolar AMI (Alternate Mark Inversion).
+
+        Dinâmica da codificação:
+            • Bit 0 → 0
+            • Bit 1 → +1 ou -1
+
+        Parâmetro:
+        • dado (bytes): Um quadro da camada de enlace.
+
+        Retorna:
+        • list[int]: Lista com o sinal bipolar.
+
+        Exemplo:
+            Entrada: b"A" → bits "0101001"
+            Saída: [0, 1, 0, -1, 0, 0, 1]
         """
-        pass
+        bits_str = Utils.byte_formarter(dado).replace(' ', '')
+        sinal = []
+        polaridade = 1
+
+        for bit in bits_str:
+            if bit == '1':
+                sinal.append(polaridade)
+                polaridade *= -1
+            else:
+                sinal.append(0)
+        return sinal
 
 
-    def decodificar_bipolar(sinal_digital:list) -> bytes:
+    def decodificar_bipolar(sinal: list[int]) -> bytes:
         """
-        Comentário...
+        Transforma um sinal codificado em bipolar de volta em bytes.
+
+        Dinâmica da decodificação:
+            • Valor  0 → bit 0
+            • Valor +1 ou -1 → bit 1
+
+        Parâmetro:
+        • sinal (list[int]): Lista com o sinal codificado em bipolar.
+
+        Retorna:
+        • bytes: Dados decodificados a partir do sinal.
+
+        Exemplo:
+            Entrada: [1, 0, -1, 0, 1, 0, -1, 0]
+            Saída:    '10101010'
         """
-        pass
+        # Constrói a sequência de bits
+        bits = ''.join('1' if valor != 0 else '0' for valor in sinal)
+
+        # Agrupa em blocos
+        blocos = [bits[i:i+8] for i in range(0, len(bits), 8)]
+
+        # Converte os blocos para bytes
+        return bytes(int(bloco, 2) for bloco in blocos)
+
 
 
     def modular_fsk(sinal_digital: list, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
@@ -203,12 +249,44 @@ class CamadaFisica:
         pass
 
 
-    def modular_8qam(sinal_digital:list) -> list:
+    def modular_8qam(sinal_digital: list) -> list:
+        """
+        Modula um sinal digital usando 8-QAM.
 
+        • Cada grupo de 3 bits representa um ponto na constelação (I, Q).
+        • O mapeamento é feito com uma tabela fixa:
+
+        Parâmetro:
+        • sinal_digital: lista com bits (0s e 1s).
+
+        Retorna:
+        • Lista de tuplas (I, Q) representando do sinal modulado.
         """
-        Comentário...
-        """
-        pass
+        
+        rangeMap = {
+            '000': (-1, -1),
+            '001': (-1, 0),
+            '010': (-1, 1),
+            '011': (0, -1),
+            '100': (0, 1),
+            '101': (1, -1),
+            '110': (1, 0),
+            '111': (1, 1)
+        }
+
+        bits_str = ''.join(f'{byte:08b}' for byte in sinal_digital)
+
+        padding = (3 - len(bits_str) % 3) % 3
+        bits_str += '0' * padding
+
+        sinal = []
+
+        for i in range(0, len(bits_str), 3):
+            bit_trio = bits_str[i:i+3]
+            simbolo = rangeMap.get(bit_trio, (0, 0)) 
+            sinal.append(simbolo)
+
+        return sinal
 
 
     def demodular_8qam(sinal_analogico:list) -> list:

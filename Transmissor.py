@@ -67,9 +67,9 @@ if __name__ == "__main__":
     # Define os dados de entrada (simulando a camada de aplicação)
     data = {
         "entrada": "teste",                         # Mensagem que será transmitida
-        "enquadramento": "Contagem de caracteres",  # Tipo de enquadramento
-        "mod_digital": "NRZ-Polar",                 # Tipo de modulação digital
-        "mod_analogica": "FSK"                      # Tipo de modulação analógica
+        "enquadramento": "FLAGS Inserção de bits",  # Tipo de enquadramento
+        "mod_digital": "Bipolar",                 # Tipo de modulação digital
+        "mod_analogica": "8-QAM"                      # Tipo de modulação analógica
     }
 
     # Coloca os dados na fila de entrada do transmissor
