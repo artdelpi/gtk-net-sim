@@ -39,7 +39,7 @@ class CamadaFisica:
         if(tipo == "FSK"):
             return CamadaFisica.modular_fsk(dado)
         elif(tipo == "ASK"):
-            print("Falta implementar")
+             return CamadaFisica.modular_ask(dado)
         elif(tipo == "8-QAM"):
             print("Falta implementar")
         
@@ -199,7 +199,43 @@ class CamadaFisica:
         return sinal_modulado
 
 
-    def modular_ask(sinal_digital:list) -> list:
+    def demodular_fsk(sinal_modulado, f0=2, f1=5, amostras_por_bit=100, fs=800):
+        pass
+
+    def modular_ask(sinal_digital: list, amostras_por_bit: int = 100, fs: int = 800,) -> list:
+        """
+        Gera um sinal modulado em ASK (Amplitude Shift Keying) com ciclo completo por bit.
+        
+        Parâmetros:
+        sinal_digital (list): Lista de bits (0s e 1s) a ser modulada
+        amostras_por_bit (int): Número de amostras por bit (default=100)
+        fs (int): Frequência de amostragem em Hz (default=800)
+        freq (float): Frequência da portadora em Hz. Se None, será calculada para 1 ciclo/bit (default=None)
+        
+        Retorna:
+        list: Sinal modulado em ASK
+        """
+        
+        # Calcula frequência padrão para 1 ciclo completo por bit
+        freq = fs / amostras_por_bit
+        
+        dt = 1 / fs  # Período de amostragem
+        tempo_acumulado = 0  # Mantém o tempo contínuo
+        sinal_modulado = []
+        
+        for bit in sinal_digital:
+            for _ in range(amostras_por_bit):
+                if bit == 1:
+                    fase = 2 * np.pi * freq * tempo_acumulado
+                    sinal_modulado.append(np.sin(fase))
+                else:
+                    sinal_modulado.append(0)
+                    
+                tempo_acumulado += dt  # Atualiza o tempo
+                
+        return sinal_modulado
+    
+    def demodular_ask(sinal_alogico:list) -> list:
         """
         Comentário...
         """
