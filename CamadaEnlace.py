@@ -173,9 +173,7 @@ class Enlace:
 
         return bytes(codificacao_bytes)
 
-
         
-
     def bit_de_paridade_par(quadro:bytes) -> bytes:
         """
         Força o quadro a ter número par de 1s, através do bit de paridade par.

@@ -46,6 +46,7 @@ class Transmissor:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect(("localhost", 711))  # Porta e host iguais ao do receptor
                     msg_dict = {
+                        "encoded_signal": encoded_signal,
                         "modulated_signal": modulated_signal,
                         "mod_analogica": data["mod_analogica"],
                         "mod_digital": data["mod_digital"],

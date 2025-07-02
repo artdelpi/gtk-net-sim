@@ -166,7 +166,8 @@ class Simulador(Gtk.Window):
             pass
         return True 
 
-class GUI:
+
+class GUI_TX:
     def __init__(self, in_queue, out_queue):
         self.in_queue = in_queue
         self.out_queue = out_queue
@@ -176,6 +177,59 @@ class GUI:
         win.connect("destroy", Gtk.main_quit)
         win.show_all()
         Gtk.main()
+
+
+class GUI_RX(Gtk.Window):
+    def __init__(self, in_queue: queue.Queue):
+        super().__init__(title="Receptor")
+        self.set_default_size(800, 600)
+        self.in_queue = in_queue
+        self.figuras = []
+
+        notebook = Gtk.Notebook()
+        self.aba_aplicacao = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, margin=10)
+        self.aba_enlace = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, margin=10)
+        self.aba_graficos = Gtk.Grid(column_spacing=10, row_spacing=10, margin=10)
+
+        notebook.append_page(self.aba_aplicacao, Gtk.Label(label="Camada de Aplicação"))
+        notebook.append_page(self.aba_enlace, Gtk.Label(label="Camada Enlace"))
+        notebook.append_page(self.aba_graficos, Gtk.Label(label="Camada Física"))
+
+        self.add(notebook)
+        GLib.timeout_add(100, self.atualizar_saidas)
+
+    def start(self):
+        self.connect("destroy", Gtk.main_quit)
+        self.show_all()
+        Gtk.main()
+
+    def atualizar_saidas(self):
+        try:
+            while True:
+                camada, dado = self.in_queue.get_nowait()
+
+                if camada == "aplicacao" and isinstance(dado, str):
+                    label = Gtk.Label(label=dado)
+                    self.aba_aplicacao.pack_start(label, False, False, 5)
+                    label.show_all()
+
+                elif camada == "enlace" and isinstance(dado, str):
+                    label = Gtk.Label(label=dado)
+                    self.aba_enlace.pack_start(label, False, False, 5)
+                    label.show_all()
+
+                elif camada == "fisica" and isinstance(dado, Figure):
+                    canvas = FigureCanvas(dado)
+                    canvas.set_hexpand(True)
+                    canvas.set_size_request(400, 300)
+                    self.figuras.append(canvas)
+                    linha = len(self.figuras) - 1
+                    self.aba_graficos.attach(canvas, 0, linha, 2, 1)
+                    self.aba_graficos.show_all()
+        except queue.Empty:
+            pass
+        return True
+
 
 if __name__ == "__main__":
     import queue
