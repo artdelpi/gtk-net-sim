@@ -1,5 +1,7 @@
+import Utils
+
 class Enlace:
-    def enquadramento(tipo, dado) -> bytes:
+    def enquadramento(tipo:str, dado:bytes) -> bytes:
         """
         Escolhe e executa algum tipo de enquadramento.
 
@@ -20,7 +22,7 @@ class Enlace:
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
 
 
-    def desenquadramento(tipo, dado) -> bytes:
+    def desenquadramento(tipo:str, dado:bytes) -> bytes:
         """
         Escolhe e executa algum tipo de desenquadramento.
 
@@ -33,12 +35,32 @@ class Enlace:
         """
         unframed_msg = ''
         if(tipo == "Contagem de caracteres"):
-            return CamadaEnlace.desenquadrar_contagem_caracteres(dado)
+            return Enlace.desenquadrar_contagem_caracteres(dado)
         elif(tipo == "FLAGS e inserção de bytes ou caracteres"):
             print("Falta implementar")
         elif(tipo == "FLAGS Inserção de bits"):
             print("Falta implementar")
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
+
+
+    def aplicar_edc(tipo:str, quadro:bytes, edc:int) -> bytes:
+        if tipo == "Bit de paridade par":
+            return Enlace.bit_de_paridade_par(quadro)
+        elif tipo == "CRC":
+            return Enlace.crc(quadro)
+        elif tipo == "Hamming":
+            return Enlace.hamming(quadro)
+        raise ValueError(f"Tipo de EDC inválido: {tipo}")
+
+
+    def verificar_edc(tipo:str, quadro:bytes, edc:int) -> bytes:
+        if tipo == "Bit de paridade par":
+            return Enlace.verifica_bit_de_paridade_par(quadro)
+        elif tipo == "CRC":
+            return Enlace.verifica_crc(quadro)
+        elif tipo == "Hamming":
+            return Enlace.verifica_hamming(quadro)
+        raise ValueError(f"Tipo de EDC inválido: {tipo}")
 
 
     def enquadrar_contagem_caracteres(dado:bytes) -> bytes:
@@ -279,5 +301,5 @@ class Enlace:
         return int(bits_sem_paridade, 2).to_bytes((len(bits_sem_paridade)+7)//8, "big")
 
 
-    def crc():
+    def crc(quadro:bytes, tamanho_do_edc:int) -> bytes:
         pass

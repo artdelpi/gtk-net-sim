@@ -72,16 +72,32 @@ class Receptor:
             tipo_mod_analogica = data["mod_analogica"]
             tipo_mod_digital = data["mod_digital"]
             tipo_enquadramento = data["enquadramento"]
+            tipo_detecao = data["detecao"]
+            tamanho_do_edc = data["edc"]
 
-            self.gui_queue.put(["fisica", graph_generator(sinal_modulado, f"Sinal Recebido ({tipo_mod_analogica})", 'sinal_analogico')])
+            # Camada Física: Exibe sinal analógico (Sem demodular)
+            self.gui_queue.put([
+                "fisica", 
+                graph_generator(sinal_modulado, f"Sinal Recebido ({tipo_mod_analogica})", 'sinal_analogico')
+            ])
 
-            self.gui_queue.put(["fisica", graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')])
-            # Demodula sinal digital
-            quadro_bytes = CamadaFisica.decodificador_banda_base(tipo_mod_digital, sinal_digital)
+            # Camada Física: Demodulação do Sinal Digital
+            self.gui_queue.put([
+                "fisica", 
+                graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')
+            ])
+            quadro_bytes = CamadaFisica.decodificador_banda_base(tipo_mod_digital, sinal_digital) # Demodula sinal digital
 
-            self.gui_queue.put(["enlace", f"Quadro decodificado: {byte_formarter(quadro_bytes)}"])
-            # Recupera mensagem original, em bytes
-            msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_bytes)
+            # Verifica o EDC, caso utilizado
+            if (tipo_detecao):
+                quadro_bytes = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
+
+            # Camada de Enlace: Desenquadramento
+            self.gui_queue.put([
+                "enlace", 
+                f"Quadro decodificado: {byte_formarter(quadro_bytes)}"
+            ])
+            msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_bytes) # Recupera mensagem original, em bytes
             
             self.gui_queue.put(["aplicacao", f"Mensagem recebida (bytes): {byte_formarter(msg_bytes)}"]) # Confirmação de recebimento
         except Exception as e:

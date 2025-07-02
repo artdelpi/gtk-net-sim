@@ -31,8 +31,10 @@ class Transmissor:
                 tipo_mod_analogica = data["mod_analogica"]
                 tipo_mod_digital = data["mod_digital"]
                 tipo_enquadramento = data["enquadramento"]
+                tamanho_do_edc = data["edc"]
+                tipo_detecao = data["detecao"]
 
-                # Camada de Aplicação
+                # Camada de Aplicação: Geração da Mensagem
                 encoded_msg = msg.encode("utf-8") # Exemplo: mensagem -> b'mensagem'
                 self.gui_queue.put(["aplicacao", f'Mensagem a ser Enviada: {msg}']) # Exibe string original
                 self.gui_queue.put(["aplicacao", f'Mensagem em bytes: {byte_formarter(encoded_msg)}']) # Exibe representação binária
@@ -43,6 +45,10 @@ class Transmissor:
                     "enlace", 
                     f'Mensagem Enquadrada: {byte_formarter(framed_msg)}'
                 ]) # Exibe quadro (em bits) na interface gráfica
+
+                # Aplica EDC (Error Detection Code), caso selecionado
+                if (tipo_detecao):
+                    framed_msg = Enlace.aplicar_edc(tipo_detecao, framed_msg, tamanho_do_edc)
                 
                 # Camada Física: Codificação Banda Base
                 encoded_signal = CamadaFisica.codficador_banda_base(tipo_mod_digital, framed_msg) # Aplica codificação banda base no quadro
@@ -68,7 +74,9 @@ class Transmissor:
                         "modulated_signal": modulated_signal, # Sinal analógico: lista de amostras
                         "mod_analogica": data["mod_analogica"],
                         "mod_digital": data["mod_digital"],
-                        "enquadramento": data["enquadramento"]
+                        "enquadramento": data["enquadramento"],
+                        "edc": data["edc"], # Tamanho do EDC
+                        "detecao": data["detecao"] # Tipo do EDC
                     }
 
                     # Serializa o dicionário em bytes para envio
