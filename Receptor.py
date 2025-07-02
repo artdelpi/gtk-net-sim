@@ -62,6 +62,9 @@ class Receptor:
         time.sleep(2) # Espera 2 segundos pra processar o sinal (Efeito visual na GUI)
 
         try:
+            # Sinal digital recebido pelo receptor
+            sinal_digital = data["encoded_signal"]
+
             # Sinal analógico recebido pelo receptor
             sinal_modulado = data["modulated_signal"]
             
@@ -71,8 +74,6 @@ class Receptor:
             tipo_enquadramento = data["enquadramento"]
 
             self.gui_queue.put(["fisica", graph_generator(sinal_modulado, f"Sinal Recebido ({tipo_mod_analogica})", 'sinal_analogico')])
-            # Demodula sinal analógico
-            sinal_digital = CamadaFisica.demodulador(tipo_mod_analogica, sinal_modulado) 
 
             self.gui_queue.put(["fisica", graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')])
             # Demodula sinal digital

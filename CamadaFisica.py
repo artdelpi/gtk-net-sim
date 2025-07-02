@@ -26,7 +26,7 @@ class CamadaFisica:
     def decodificador_banda_base(tipo, dado):
         decoded_msg = ''
         if(tipo == "NRZ-Polar"):
-            print("Falta implementar")
+            return CamadaFisica.decodificar_nrz_polar(dado)
         elif(tipo == "Manchester"):
             print("Falta implementar")
         elif(tipo == "Bipolar"):
@@ -45,18 +45,6 @@ class CamadaFisica:
         
         return modulated_msg
     
-
-    def demodulador(tipo, dado):
-        demodulated_msg = ''
-        if (tipo == "FSK"):
-            return CamadaFisica.demodular_fsk(dado)
-        elif(tipo == "ASK"):
-            print("Falta implementar")
-        elif(tipo == "8-QAM"):
-            print("Falta implementar")
-        
-        return demodulated_msg
-
 
     def codificar_nrz_polar(dado: bytes) -> list:
         """
@@ -78,8 +66,8 @@ class CamadaFisica:
         • list[int]: Lista com o sinal NRZ-Polar.
 
         Exemplo:
-            Entrada b"A" → bits "01000001"
-            Saída → [-1, 1, -1, -1, -1, -1, 1, -1]
+            Entrada: b"A" → bits "01000001"
+            Saída: [-1, 1, -1, -1, -1, -1, 1, -1]
         """
         # Transforma bytes em string de bits e remove espaços
         bits_str = Utils.byte_formarter(dado).replace(' ', '')
@@ -91,9 +79,35 @@ class CamadaFisica:
 
     def decodificar_nrz_polar(sinal_digital:list) -> bytes:
         """
-        Comentário...
+        Decodifica um sinal digital codificado com NRZ-Polar.
+
+        Funcionamento:
+        • Converte lista com valores da NRZ-Polar (ex: [-1, 1, -1, ...]) em uma lista de 1s e 0s.
+        • Agrupa bits em uma string e transforma num inteiro binário.
+        • Converte de inteiro pra bytes e recupera o quadro.
+
+        Parâmetro:
+        • list[int]: Lista com o sinal NRZ-Polar.
+
+        Retorna:
+        • bytes: Um quadro da camada de enlace.
+
+        Exemplo:
+            Entrada: [-1, 1, -1, -1, -1, -1, 1, -1]
+            Saída: bits "01000001" → b"A"
         """
-        pass
+        # Desfaz o mapeamento da NRZ-Polar numa string dos bits
+        bits_str = "".join(["1" if v == 1 else "0" for v in sinal_digital])
+
+        # Toma o quadro em inteiro na base 2 pra aplicar o to_bytes()
+        quadro_bits = int(bits_str, 2)
+
+        # Calcula o número de bytes
+        num_bytes = (len(bits_str)+7)//8 
+
+        # Obtém o quadro original, em bytes
+        quadro = quadro_bits.to_bytes(num_bytes, "big")
+        return quadro
 
 
     def codificar_manchester(dado:bytes) -> list:
@@ -185,18 +199,7 @@ class CamadaFisica:
         return sinal_modulado
 
 
-    def demodular_fsk(sinal_modulado, f0=2, f1=5, amostras_por_bit=100, fs=800):
-        pass
-
-
     def modular_ask(sinal_digital:list) -> list:
-        """
-        Comentário...
-        """
-        pass
-
-
-    def demodular_ask(sinal_alogico:list) -> list:
         """
         Comentário...
         """
@@ -205,13 +208,6 @@ class CamadaFisica:
 
     def modular_8qam(sinal_digital:list) -> list:
 
-        """
-        Comentário...
-        """
-        pass
-
-
-    def demodular_8qam(sinal_analogico:list) -> list:
         """
         Comentário...
         """
