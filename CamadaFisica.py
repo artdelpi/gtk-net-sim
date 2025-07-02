@@ -20,7 +20,7 @@ class CamadaFisica:
             return CamadaFisica.codificar_manchester(dado)
         elif(tipo == "Bipolar"):
             return CamadaFisica.codificar_bipolar(dado)
-        return encoded_msg # Codificação não especificada
+        raise ValueError(f"Tipo de codificação inválida: {tipo}")
    
    
     def decodificador_banda_base(tipo, dado):
@@ -31,7 +31,7 @@ class CamadaFisica:
             print("Falta implementar")
         elif(tipo == "Bipolar"):
             return CamadaFisica.decodificar_bipolar(dado)
-        return decoded_msg # Codificação não especificada
+        raise ValueError(f"Tipo de codificação inválida: {tipo}")
 
 
     def modulador(tipo, dado):
@@ -42,8 +42,7 @@ class CamadaFisica:
              return CamadaFisica.modular_ask(dado)
         elif(tipo == "8-QAM"):
             return CamadaFisica.modular_8qam(dado)
-        
-        return modulated_msg
+        raise ValueError(f"Tipo de modução inválida: {tipo}")
     
 
     def codificar_nrz_polar(dado: bytes) -> list:
@@ -189,7 +188,7 @@ class CamadaFisica:
         return sinal
 
 
-    def decodificar_bipolar(sinal: list[int]) -> bytes:
+    def decodificar_bipolar(sinal: list) -> bytes:
         """
         Transforma um sinal codificado em bipolar de volta em bytes.
 
@@ -215,7 +214,6 @@ class CamadaFisica:
 
         # Converte os blocos para bytes
         return bytes(int(bloco, 2) for bloco in blocos)
-
 
 
     def modular_fsk(sinal_digital: list, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
@@ -244,9 +242,6 @@ class CamadaFisica:
 
         return sinal_modulado
 
-
-    def demodular_fsk(sinal_modulado, f0=2, f1=5, amostras_por_bit=100, fs=800):
-        pass
 
     def modular_ask(sinal_digital: list, amostras_por_bit: int = 100, fs: int = 800,) -> list:
         """
@@ -281,12 +276,6 @@ class CamadaFisica:
                 
         return sinal_modulado
     
-    def demodular_ask(sinal_alogico:list) -> list:
-        """
-        Comentário...
-        """
-        pass
-
 
     def modular_8qam(sinal_digital: list) -> list:
         """
@@ -326,10 +315,3 @@ class CamadaFisica:
             sinal.append(simbolo)
 
         return sinal
-
-
-    def demodular_8qam(sinal_analogico:list) -> list:
-        """
-        Comentário...
-        """
-        pass
