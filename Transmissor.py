@@ -49,6 +49,10 @@ class Transmissor:
                 # Aplica EDC (Error Detection Code), caso selecionado
                 if (tipo_detecao):
                     framed_msg = Enlace.aplicar_edc(tipo_detecao, framed_msg, tamanho_do_edc)
+                    self.gui_queue.put([
+                        "enlace", 
+                        f"Quadro com EDC: {byte_formarter(framed_msg)}"
+                    ])
                 
                 # Camada Física: Codificação Banda Base
                 encoded_signal = CamadaFisica.codficador_banda_base(tipo_mod_digital, framed_msg) # Aplica codificação banda base no quadro
