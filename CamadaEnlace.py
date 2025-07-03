@@ -263,11 +263,11 @@ class Enlace:
     def bit_de_paridade_par(quadro:bytes) -> bytes:
         """
         Força o quadro a ter número par de 1s, através do bit de paridade par.
-        Se o receptor captar um número ímpar de 1s, então houve erro e o receptor detecta.
+        Adiciona o bit de paridade par no final da mensagem (dentro de um byte novo).
 
         Funcionamento:
-           • Saída = Quadro ++ 1 (se número ímpar de 1s).
-           • Saída = Quadro ++ 0 (se número de 1s já for par).
+           • Saída = Quadro + \x01 (se número ímpar de 1s).
+           • Saída = Quadro + \x00 (se número par de 1s).
 
         Parâmetro:
         • dado (bytes): Quadro sem o bit de paridade par.
@@ -277,24 +277,20 @@ class Enlace:
 
         Exemplo Ímpar:
             Entrada: b's' → 01110011 (Número ímpar de 1s) 
-            Saída: 011100111 (Número par de 1s: acrescenta o bit de paridade 1)
+            Saída: 01110011 00000001 (Número par de 1s: acrescenta o bit de paridade 1)
 
         Exemplo Par:
             Entrada: b's' → 01110010 (Número par de 1s) 
-            Saída: 011100100 (Acrescenta o bit de paridade 0)
+            Saída: 01110010 00000000 (Bit de paridade é zero)
         """
         # Passa o quadro de bytes pra bits e remove espaços
         bits = Utils.byte_formarter(quadro).replace(" ", "")
-        
+
         # Se o número de bits for ímpar, acrescenta o bit de paridade par
         if (bits.count("1") % 2 != 0):
-            bits_com_paridade = bits + "1"
+            return quadro + b"\x01"
         else:
-            bits_com_paridade = bits + "0" # Já tem número par de 1s
-
-        # Converte para inteiro e depois para bytes
-        return int(bits_com_paridade, 2).to_bytes((len(bits)+7)//8, "big")
-
+            return quadro + b"\x00"
 
     def verifica_bit_de_paridade_par(quadro:bytes) -> bytes:
         """
@@ -314,14 +310,12 @@ class Enlace:
         # Passa o quadro de bytes pra bits e remove espaços
         bits = Utils.byte_formarter(quadro).replace(" ", "")
 
+        # Verifica se o número de 1s é ímpar
         if (bits.count("1") % 2 != 0):
             raise ValueError("Erro de paridade! número ímpar de bits 1.")
         
-        bits_sem_paridade = bits[:-1] # Remove o último bit (bit de paridade, 1 ou 0)
-
-        # Converte para inteiro e depois para bytes
-        return int(bits_sem_paridade, 2).to_bytes((len(bits_sem_paridade)+7)//8, "big")
-
+        # Remove o último byte com o bit de paridade
+        return quadro[:-1]
 
     def crc(quadro:bytes, tamanho_do_edc:int) -> bytes:
         pass
