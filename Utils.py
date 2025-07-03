@@ -32,19 +32,20 @@ def graph_generator(data, title, signal_type):
     """
     if data:
         if signal_type == 'sinal_banda_base':
-            x = np.arange(len(data))
+            x = np.arange(len(data) + 1)
             largura = max(6, len(data) * 300)
             altura = 2.5
             fig, ax = plt.subplots(figsize=(largura, altura))
-            ax.step(x, data, where='post', color='r', linewidth=2.5)
+            data_extended = np.append(data, data[-1])  # Mantém o último degrau até o fim
+            ax.step(x, data_extended, where='post', color='r', linewidth=2.5)
             ax.set_ylim((min(data) - 0.1), 1.1)  
             ax.set_yticks([min(data), 1])
             ax.set_title(title)
             ax.grid(True, linestyle='--', alpha=0.6)
             # Marca um tick por bit
             num_bits = len(data)
-            tick_positions = list(range(num_bits))
-            tick_labels = [str(i) for i in range(num_bits)]
+            tick_positions = list(range(num_bits + 1))
+            tick_labels = [str(i) for i in range(num_bits + 1)]
             ax.set_xticks(tick_positions)
             ax.set_xticklabels(tick_labels)
             ax.tick_params(axis='x', labelsize=6)

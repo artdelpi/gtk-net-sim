@@ -73,6 +73,7 @@ class CamadaFisica:
 
         # Faz o mapeamento 0 → -1 e 1 → +1
         sinal = [1 if bit == '1' else -1 for bit in bits_str]
+        print(sinal)
         return sinal
 
 
