@@ -108,6 +108,7 @@ class Receptor:
             msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_bytes) # Recupera mensagem original, em bytes
             
             self.gui_queue.put(["aplicacao", f"Mensagem recebida (bytes): {byte_formarter(msg_bytes)}"]) # Confirmação de recebimento
+            self.gui_queue.put(["aplicacao", f"Mensagem recebida: {msg_bytes}"]) # Confirmação de recebimento
         except Exception as e:
             self.gui_queue.put(["aplicacao", f"Erro ao processar sinal: {e}"]) # Comunica erro de processamento
 

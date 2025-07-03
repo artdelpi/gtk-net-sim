@@ -37,7 +37,7 @@ class Enlace:
         if(tipo == "Contagem de caracteres"):
             return Enlace.desenquadrar_contagem_caracteres(dado)
         elif(tipo == "FLAGS e inserção de bytes ou caracteres"):
-            print("Falta implementar")
+           return Enlace.desenquadrar_flag_insercao_byte(dado)
         elif(tipo == "FLAGS Inserção de bits"):
             print("Falta implementar")
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
@@ -117,6 +117,8 @@ class Enlace:
 
         Parâmetros:
         • quadro (bytes): Quadro com o byte de tamanho seguido do payload.
+        • flag (string): flag de sinal.
+        • esc (string): caracrtere de escape.
 
         Retorna:
         • bytes: Apenas o payload (dados da camada de aplicação).
@@ -135,11 +137,64 @@ class Enlace:
                dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]            
         return (flag + dado + flag).encode()
 
-    def desenquadrar_flag_insercao_byte(quadro:bytes) -> bytes:
+
+    def desenquadrar_flag_insercao_byte(quadro: bytes, flag='flag', esc='esc') -> bytes:
         """
-        Comentário...
+        Desenquadramento por insercao de bytes.
+
+        Dinâmica:
+            Remove as flags do inicio e do final do quadro.
+            Remove os caracteres de escape inseridos, reconstruindo a mensagem original.
+            Quando encontra um escape, remove-o e mantém o próximo bloco (seja flag ou escape) como dado.
+
+        Parâmetros:
+        • quadro (bytes): Quadro enquadrado a ser processado.
+        • flag (string): Flag de sinal utilizada no enquadramento.
+        • esc (string): Caractere de escape utilizado no enquadramento.
+
+        Retorna:
+        • bytes: Dados originais (payload da camada de aplicação).
+
+        Exceções:
+        • ValueError: Se o quadro não tiver formato válido (UTF-8, flags ausentes ou escape incompleto).
         """
-        pass
+        try:
+            quadro_str = quadro.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise ValueError("Quadro não é UTF-8 válido") from e
+
+        len_flag = len(flag)
+        len_quadro = len(quadro_str)
+
+        if len_quadro < 2 * len_flag:
+            raise ValueError("Quadro muito curto")
+
+        if not (quadro_str.startswith(flag) and quadro_str.endswith(flag)):
+            raise ValueError("Flags de início/fim ausentes")
+
+        # Remove flags externas
+        dado_sem_flag = quadro_str[len_flag:len_quadro - len_flag]
+        len_esc = len(esc)
+        resultado = []
+        i = 0
+        n = len(dado_sem_flag)
+
+        # Processa o conteúdo removendo escapes
+        while i < n:
+            # Verifica se há uma ocorrência de escape na posição atual
+            if i + len_esc <= n and dado_sem_flag[i:i+len_esc] == esc:
+                i += len_esc  # Pula o escape
+                if i + len_esc > n:
+                    raise ValueError("Escape incompleto")
+                # Mantém o próximo bloco (dado original)
+                resultado.append(dado_sem_flag[i:i+len_esc])
+                i += len_esc
+            else:
+                # Adiciona caracteres normais
+                resultado.append(dado_sem_flag[i])
+                i += 1
+
+        return ''.join(resultado).encode("utf-8")
 
 
     def enquadrar_flag_insercao_bit(dado:bytes) -> bytes:
