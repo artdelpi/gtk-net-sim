@@ -132,9 +132,7 @@ class Enlace:
            flag_pos = Utils.findall(flag, dado)
            for pos in range(0, len(flag_pos)):
                offset = len(esc) * pos
-               dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]
-               print(f'============== {dado} ======================')
-            
+               dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]            
         return (flag + dado + flag).encode()
 
     def desenquadrar_flag_insercao_byte(quadro:bytes) -> bytes:
