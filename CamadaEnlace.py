@@ -106,12 +106,36 @@ class Enlace:
         return quadro[1:] # Remove primeiro byte
 
 
-    def enquadrar_flag_insercao_byte(dado:bytes) -> bytes:
+    def enquadrar_flag_insercao_byte(dado:bytes, flag='flag', esc='esc') -> bytes:
         """
-        Comentário...
-        """
-        pass
+        Enquadramento por insercao de bytes.
 
+        Dinâmica:
+            Adiciona uma flag no inicio e no final da mensagem. Ex:mensagem -> flag + mensagem + flag
+            Caso haja uma flag "acidental" na mensagem, é adicionado um caractere de escape. Ex: mensagem = flagRANTE -> flag + esc + flagRANTE + flag.
+            Caso um caractere de escape "acidental", é adicionado um outro caractere de escape antes do esc. Ex: mensagem = escOLA -> flag + esc + escOLA + flag.
+
+        Parâmetros:
+        • quadro (bytes): Quadro com o byte de tamanho seguido do payload.
+
+        Retorna:
+        • bytes: Apenas o payload (dados da camada de aplicação).
+        """
+        dado = dado.decode("utf-8")
+        if flag in dado:
+           esc_pos = Utils.findall(esc, dado)
+           for pos in range(0, len(esc_pos)):
+               offset = len(esc) * pos
+               
+               dado = dado[:(esc_pos[pos] + offset)] + 'esc' + dado[(esc_pos[pos] + offset):]
+
+           flag_pos = Utils.findall(flag, dado)
+           for pos in range(0, len(flag_pos)):
+               offset = len(esc) * pos
+               dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]
+               print(f'============== {dado} ======================')
+            
+        return (flag + dado + flag).encode()
 
     def desenquadrar_flag_insercao_byte(quadro:bytes) -> bytes:
         """

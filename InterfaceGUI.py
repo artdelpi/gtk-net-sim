@@ -8,9 +8,10 @@ from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCan
 import queue
 
 class Simulador(Gtk.Window):
-    def __init__(self, in_queue: queue, out_queue: queue):
+    def __init__(self, in_queue: queue, out_queue: queue,  gui_rx):
         self.in_queue = in_queue
         self.out_queue = out_queue
+        self.gui_rx = gui_rx
 
         Gtk.Window.__init__(self, title="Simulador de Camada Física / Enlace")
         self.set_default_size(1000, 600)
@@ -118,6 +119,8 @@ class Simulador(Gtk.Window):
 
     
     def on_simular_clicked(self, widget):
+        GLib.idle_add(self.gui_rx.limpar_abas)
+
         #Limpa os gráficos
         for box in [self.aba_aplicacao, self.aba_enlace]:
             for child in box.get_children():
@@ -166,17 +169,15 @@ class Simulador(Gtk.Window):
             pass
         return True 
 
-
 class GUI_TX:
-    def __init__(self, in_queue, out_queue):
+    def __init__(self, in_queue, out_queue, gui_rx):
         self.in_queue = in_queue
         self.out_queue = out_queue
+        self.gui_rx = gui_rx
 
-    def start(self):
-        win = Simulador(self.in_queue, self.out_queue)
-        win.connect("destroy", Gtk.main_quit)
-        win.show_all()
-        Gtk.main()
+    def create_window(self):
+        win = Simulador(self.in_queue, self.out_queue, self.gui_rx)
+        return win
 
 
 class GUI_RX(Gtk.Window):
@@ -197,11 +198,6 @@ class GUI_RX(Gtk.Window):
 
         self.add(notebook)
         GLib.timeout_add(100, self.atualizar_saidas)
-
-    def start(self):
-        self.connect("destroy", Gtk.main_quit)
-        self.show_all()
-        Gtk.main()
 
     def atualizar_saidas(self):
         try:
@@ -230,6 +226,21 @@ class GUI_RX(Gtk.Window):
             pass
         return True
 
+    def limpar_abas(self):
+    # Limpa a aba de aplicação
+        for child in self.aba_aplicacao.get_children():
+            self.aba_aplicacao.remove(child)
+        
+        # Limpa a aba de enlace
+        for child in self.aba_enlace.get_children():
+            self.aba_enlace.remove(child)
+        
+        # Limpa a aba de física (gráficos)
+        for child in self.aba_graficos.get_children():
+            self.aba_graficos.remove(child)
+        
+        self.figuras = []  # Reseta a lista de figuras
+        self.aba_graficos.show_all()  # Atualiza a interface
 
 if __name__ == "__main__":
     import queue

@@ -139,14 +139,12 @@ class CamadaFisica:
         """
         bits_str = Utils.byte_formarter(dado).replace(' ', '')
         clock = '01' * len(bits_str)
-        print(clock)
         sinal = []
         for bit in range(0,len(bits_str)):
            bit1 = int(bits_str[bit]) ^ int(clock[2*bit])
            bit2 = int(bits_str[bit]) ^ int(clock[(2*bit) + 1]) 
            sinal.append(bit1)
            sinal.append(bit2)
-        print(sinal)
         return sinal
 
 

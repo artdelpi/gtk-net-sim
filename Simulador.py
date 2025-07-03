@@ -3,6 +3,9 @@ from threading import Thread
 from InterfaceGUI import GUI_TX, GUI_RX
 from Transmissor import Transmissor
 from Receptor import Receptor
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 # Fila do transmissor (envia pra GUI_TX)
 tx_out_queue = Queue()
@@ -12,33 +15,41 @@ tx_in_queue = Queue()
 rx_out_queue = Queue()
 rx_in_queue = Queue()
 
-# Instancia interfaces gráficas
-gui_tx = GUI_TX(tx_out_queue, tx_in_queue)
-gui_rx = GUI_RX(rx_out_queue)
-
 # Instancia módulos
 transmissor = Transmissor(in_queue=tx_in_queue, gui_queue=tx_out_queue)
 receptor = Receptor(gui_queue=rx_out_queue)
 
-# Threads das interfaces e módulos
-t_gui_tx = Thread(target=gui_tx.start)
-t_gui_rx = Thread(target=gui_rx.start)
+# Instancia interfaces gráficas
+gui_rx = GUI_RX(rx_out_queue)
+gui_tx = GUI_TX(tx_out_queue, tx_in_queue, gui_rx) 
+# Cria as janelas na thread principal
+tx_window = gui_tx.create_window()
+rx_window = gui_rx
+
+# Configura o fechamento
+def fechar_tudo(*_):
+    tx_in_queue.put("SAIR")
+    receptor.stop()
+    Gtk.main_quit()
+
+tx_window.connect("destroy", fechar_tudo)
+rx_window.connect("destroy", fechar_tudo)
+
+# Mostra ambas as janelas
+tx_window.show_all()
+rx_window.show_all()
+
+# Threads dos módulos
 t_transmissor = Thread(target=transmissor.start)
 t_receptor = Thread(target=receptor.start)
 
-# Inicia tudo
-t_gui_tx.start()
-t_gui_rx.start()
+# Inicia os módulos
 t_transmissor.start()
 t_receptor.start()
 
-# Espera janelas fecharem
-t_gui_tx.join()
-t_gui_rx.join()
+# Loop principal GTK (na thread principal)
+Gtk.main()
 
-# Finaliza lógica de execução
-tx_in_queue.put("SAIR")  # Manda transmissor encerrar
+# Finalização após fechamento das janelas
 t_transmissor.join()
-
-receptor.stop()
 t_receptor.join()

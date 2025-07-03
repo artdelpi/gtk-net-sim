@@ -76,3 +76,23 @@ def graph_generator(data, title, signal_type):
             raise ValueError('Tipo de sinal não reconhecido: {signal_type}')
     else:
         raise ValueError('Nenhum dado foi fornecido.')
+    
+def findall(substring, string):
+    """
+    Encontra todas as ocorrencias de uma substring na string original
+     
+    Args:
+        substring: substring que deseja ser encotnrada
+        string: String original
+    
+    Returns:
+        Lista de com todos os indexs do inicio da substring
+
+    """
+    l = []
+    i = -1
+    while True:
+        i = string.find(substring, i+1)
+        if i == -1:
+            return l
+        l.append(string.find(substring, i))

@@ -43,7 +43,12 @@ class Transmissor:
                 framed_msg = Enlace.enquadramento(tipo_enquadramento, encoded_msg) # Enquadra mensagem da camada de aplicação
                 self.gui_queue.put([
                     "enlace", 
-                    f'Mensagem Enquadrada: {byte_formarter(framed_msg)}'
+                    f'Mensagem Enquadrada: {framed_msg}'
+                ]) # Exibe quadro (em bits) na interface gráfica
+
+                self.gui_queue.put([
+                    "enlace", 
+                    f'Mensagem Enquadrada em Bits: {byte_formarter(framed_msg)}'
                 ]) # Exibe quadro (em bits) na interface gráfica
 
                 # Aplica EDC (Error Detection Code), caso selecionado
@@ -100,9 +105,11 @@ if __name__ == "__main__":
     # Define os dados de entrada (simulando a camada de aplicação)
     data = {
         "entrada": "teste",                         # Mensagem que será transmitida
-        "enquadramento": "FLAGS Inserção de bits",  # Tipo de enquadramento
+        "enquadramento": "FLAGS e inserção de bytes ou caracteres",  # Tipo de enquadramento
         "mod_digital": "Bipolar",                   # Tipo de modulação digital
-        "mod_analogica": "8-QAM"                    # Tipo de modulação analógica
+        "mod_analogica": "8-QAM",                # Tipo de modulação analógica
+        'edc': 0,
+        'detecao': 'Tipo 1'
     }
 
     # Coloca os dados na fila de entrada do transmissor
