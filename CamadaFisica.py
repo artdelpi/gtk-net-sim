@@ -102,8 +102,8 @@ class CamadaFisica:
                 # Entende valores < 0 como -1
                 if (v < 0):
                     buffer.append(-1)
-                else:
                 # Entende valores >=0 como 1
+                else:
                     buffer.append(1)
             # Atualiza sinal digital pra decodificar após ajuste
             sinal_digital = buffer
@@ -217,6 +217,22 @@ class CamadaFisica:
             Entrada: [1, 0, -1, 0, 1, 0, -1, 0]
             Saída:    '10101010'
         """
+        # Tratamento pra ruído: caso algum valor não seja -1, 0 ou 1
+        if (any(v not in (1, 0, -1) for v in sinal)):
+            buffer = []
+            for v in sinal:
+                # Entende valores em ]-0.5V,0.5V[ como 0
+                if (v > -0.5 and v < 0.5):
+                    buffer.append(-1)
+                # Entende valores <= -0.5V como -1
+                elif (v <= -0.5):
+                    buffer.append(-1)
+                # Entende valores >= 0.5V como 1
+                else:
+                    buffer.append(1)
+            # Atualiza sinal digital pra decodificar após ajuste
+            sinal = buffer
+        
         # Constrói a sequência de bits
         bits = ''.join('1' if valor != 0 else '0' for valor in sinal)
 
