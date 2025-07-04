@@ -32,6 +32,7 @@ class Simulador(Gtk.Window):
         self.edc = Gtk.SpinButton()
         self.enquadramento = Gtk.ComboBoxText()
         self.detecao = Gtk.ComboBoxText()
+        self.detecao.connect("changed", self.on_detecao_changed)
         self.mod_digital = Gtk.ComboBoxText()
         self.mod_analogica = Gtk.ComboBoxText()
         self.erros = Gtk.SpinButton()
@@ -51,8 +52,9 @@ class Simulador(Gtk.Window):
         self.simular_btn.connect("clicked", self.on_simular_clicked)
         config_grid.attach(self.simular_btn, 0, len(widgets), 2, 1)
 
+        self.edc.set_adjustment(Gtk.Adjustment(lower=8, upper=256, step_increment=8, page_increment=8))
+        self.edc.set_value(8)  # Valor padrão inicial
         self.tamanho_quadro.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
-        self.edc.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
         self.erros.set_adjustment(Gtk.Adjustment(lower=0, upper=100, step_increment=0.1, page_increment=1))
         self.erros.set_digits(2)
 
@@ -118,6 +120,13 @@ class Simulador(Gtk.Window):
         
         GLib.timeout_add(100, self.atualizar_saidas)  # checa fila a cada 100ms
 
+    def on_detecao_changed(self, widget):
+        tipo = widget.get_active_text()
+        # Só permite escolher o tamanho do EDC se selecionar CRC
+        if tipo == "CRC":
+            self.edc.set_sensitive(True)  # Ativa o campo EDC
+        else:
+            self.edc.set_sensitive(False)  # Desativa o campo EDC
     
     def on_simular_clicked(self, widget):
         GLib.idle_add(self.gui_rx.limpar_abas)

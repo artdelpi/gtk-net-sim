@@ -32,30 +32,32 @@ def graph_generator(data, title, signal_type):
     """
     if data:
         if signal_type == 'sinal_banda_base':
-            x = np.arange(len(data) + 1)
-            largura = max(6, len(data) * 300)
+            amostras = 100 # 100 pontos por bit (nível de tensão)
+            data_expandido = np.repeat(data, amostras)
+            x = np.arange(len(data_expandido) + 1) 
+            largura = max(6, len(data) * 3)  
             altura = 6
             fig, ax = plt.subplots(figsize=(largura, altura))
-            data_extended = np.append(data, data[-1])  # Mantém o último degrau até o fim
+            data_extended = np.append(data_expandido, data_expandido[-1])  # Mantém o último degrau
             ax.step(x, data_extended, where='post', color='r', linewidth=2.5)
             y_min = min(data)
             y_max = max(data)
             ax.set_ylim(y_min - 0.1, y_max + 0.1)
-            num_ticks = 5  # Quantidade de marcas no eixo Y
+            num_ticks = 5
             tick_values = np.linspace(y_min, y_max, num_ticks)
             ax.set_yticks(tick_values)
             ax.set_title(title)
             ax.grid(True, linestyle='--', alpha=0.6)
-            # Marca um tick por bit
             num_bits = len(data)
-            tick_positions = list(range(num_bits + 1))
+            tick_positions = [i * amostras for i in range(num_bits + 1)]
             tick_labels = [str(i) for i in range(num_bits + 1)]
             ax.set_xticks(tick_positions)
             ax.set_xticklabels(tick_labels)
             ax.tick_params(axis='x', labelsize=6)
             ax.set_xlabel("T (Tempo de Bit)")
-            fig.subplots_adjust(bottom=0.2)  # Espaço entre os gráficos
+            fig.subplots_adjust(bottom=0.2)
             return fig
+
         elif signal_type == 'sinal_analogico':
             x = np.arange(len(data))
             max_largura = 100  # Limite máximo seguro (ajuste se necessário)

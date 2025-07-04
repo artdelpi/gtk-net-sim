@@ -47,7 +47,7 @@ class Enlace:
         if tipo == "Bit de paridade par":
             return Enlace.bit_de_paridade_par(quadro)
         elif tipo == "CRC":
-            return Enlace.crc(quadro)
+            return Enlace.crc(quadro, edc)
         elif tipo == "Hamming":
             return Enlace.hamming(quadro)
         raise ValueError(f"Tipo de EDC inválido: {tipo}")
@@ -57,7 +57,7 @@ class Enlace:
         if tipo == "Bit de paridade par":
             return Enlace.verifica_bit_de_paridade_par(quadro)
         elif tipo == "CRC":
-            return Enlace.verifica_crc(quadro)
+            return Enlace.verifica_crc(quadro, edc)
         elif tipo == "Hamming":
             return Enlace.verifica_hamming(quadro)
         raise ValueError(f"Tipo de EDC inválido: {tipo}")
@@ -95,7 +95,7 @@ class Enlace:
         Desfaz o enquadramento por contagem de caracteres.
 
         Dinâmica:
-            Remove o primeiro byte (que indica o tamanho do payload) e retorna o restante.
+            Remove o primeiro byte (que indica o tamanho do quadro) e retorna o restante.
 
         Parâmetros:
         • quadro (bytes): Quadro com o byte de tamanho seguido do payload.
@@ -416,5 +416,67 @@ class Enlace:
         # Remove o último byte com o bit de paridade
         return quadro[:-1]
 
-    def crc(quadro:bytes, tamanho_do_edc:int) -> bytes:
-        pass
+    def crc(quadro: bytes, tamanho_do_edc: int = 8, polinomio: int = 0x07) -> bytes:
+        """
+        Aplica o código CRC no quadro, suportando tamanho de CRC variável (ex.: 8, 16, 32 bits).
+
+        Parâmetros:
+        • quadro (bytes): Quadro de entrada (sem CRC).
+        • polinomio (int): Polinômio gerador do CRC (padrão: 0x07).
+        • tamanho_do_edc (int): Quantidade de bits do CRC (ex.: 8, 16, 32).
+
+        Retorna:
+        • bytes: Quadro com o CRC no final (em bytes).
+        """
+        crc = 0
+        for byte in quadro:
+            crc ^= byte
+            for _ in range(8):
+                # Verifica o bit mais significativo (posição depende do tamanho do CRC)
+                if crc & (1 << (tamanho_do_edc - 1)):
+                    crc = (crc << 1) ^ polinomio
+                else:
+                    crc <<= 1
+                # Mantém o CRC com o tamanho correto (ex.: 8 bits → 0xFF, 16 bits → 0xFFFF)
+                crc &= (1 << tamanho_do_edc) - 1
+
+        # Calcula quantos bytes o CRC precisa para ser armazenado
+        num_bytes_crc = (tamanho_do_edc + 7) // 8
+        crc_bytes = crc.to_bytes(num_bytes_crc, byteorder='big')
+
+        return quadro + crc_bytes
+
+
+    def verifica_crc(quadro: bytes, tamanho_do_edc: int = 8, polinomio: int = 0x07) -> bytes:
+        """
+        Verifica o CRC de tamanho variável no quadro (ex.: CRC-8, CRC-16, CRC-32).
+
+        Parâmetros:
+        • quadro (bytes): Quadro com o CRC no final.
+        • polinomio (int): Polinômio gerador do CRC.
+        • tamanho_do_edc (int): Quantidade de bits do CRC (ex.: 8, 16, 32).
+
+        Retorna:
+        • bytes: Quadro original sem o CRC (se válido).
+
+        Exceção:
+        • ValueError: Se o CRC for inválido.
+        """
+        num_bytes_crc = (tamanho_do_edc + 7) // 8  # Quantos bytes o CRC ocupa
+        crc = 0
+
+        # Processa todos os bytes do quadro (incluindo o CRC no final)
+        for byte in quadro:
+            crc ^= byte
+            for _ in range(8):
+                if crc & (1 << (tamanho_do_edc - 1)):
+                    crc = (crc << 1) ^ polinomio
+                else:
+                    crc <<= 1
+                crc &= (1 << tamanho_do_edc) - 1  # Mantém o CRC com o tamanho correto
+
+        if crc != 0:
+            raise ValueError("Erro de CRC detectado!")
+
+        # Se CRC for válido, remove os bytes do CRC e retorna o quadro original
+        return quadro[:-num_bytes_crc]
