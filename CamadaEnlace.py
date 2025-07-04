@@ -37,9 +37,9 @@ class Enlace:
         if(tipo == "Contagem de caracteres"):
             return Enlace.desenquadrar_contagem_caracteres(dado)
         elif(tipo == "FLAGS e inserção de bytes ou caracteres"):
-           return Enlace.desenquadrar_flag_insercao_byte(dado)
+            return Enlace.desenquadrar_flag_insercao_byte(dado)
         elif(tipo == "FLAGS Inserção de bits"):
-            print("Falta implementar")
+            return Enlace.desenquadrar_flag_insercao_bit(dado)
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
 
 
@@ -68,10 +68,10 @@ class Enlace:
         Enquadramento por contagem de caracteres.
 
         Dinâmica de enquadramento:
-            Quadro = Tamanho_do_Payload (1 byte) + Payload            
+            Quadro = Byte do tamanho do quadro + Payload            
         
         Funcionamento:
-            • Primeiro byte = número de bytes do payload.
+            • Primeiro byte = Tamanho_do_quadro (Tamanho do payload + 1 byte do cabeçalho)
             • Depois vêm os próprios dados (payload/carga útil).
 
         Parâmetro:
@@ -82,11 +82,11 @@ class Enlace:
 
         Exemplo:
             Entrada: b'teste' → 5 bytes
-            Saída: b'\x05teste' → 6 bytes
+            Saída: b'\x06teste' → 6 bytes
         """
-        tamanho = len(dado) # Tamanho do Payload
+        tamanho = len(dado) + 1 # Tamanho do quadro
         tamanho_byte = tamanho.to_bytes(1, byteorder='big') # Int → Bytes
-        quadro = tamanho_byte + dado # Quadro = Tamanho_do_Payload + Payload
+        quadro = tamanho_byte + dado # Quadro = Tamanho_do_Quadro + Payload
         return quadro
 
 
@@ -247,8 +247,52 @@ class Enlace:
     
 
     def desenquadrar_flag_insercao_bit(quadro:bytes) -> bytes:
-        pass
-    
+        """
+        Desfaz o enquadramento por inserção de bits (bit stuffing) com FLAG 0x7E.
+
+        Parâmetro:
+        quadro (bytes): Quadro recebido com flags e bit stuffing aplicado.
+
+        Retorna:
+        bytes: Dados originais (sem bit stuffing e sem flag).
+        """
+        FLAG = b'\x7E'  # FLAG padrão (01111110)
+
+        # Remove as flags externas (primeiro e último byte)
+        if quadro[0:1] != FLAG or quadro[-1:] != FLAG:
+            raise ValueError("FLAG de delimitação ausente no quadro")
+        quadro = quadro[1:-1]  # Remove as flags
+
+        # Converte o quadro (ainda com bit stuffing) para string de bits
+        bit_str = ''.join(f'{byte:08b}' for byte in quadro)
+
+        # Remove o stuffing: elimina o 0 inserido após cinco 1 consecutivos
+        bits_desenquadrados = []
+        cont_1bit = 0
+        i = 0
+        while i < len(bit_str):
+            bit = bit_str[i]
+            bits_desenquadrados.append(bit)
+            if bit == '1':
+                cont_1bit += 1
+                if cont_1bit == 5:
+                    i += 1  # Pula o bit 0 inserido (stuffed bit)
+                    cont_1bit = 0
+            else:
+                cont_1bit = 0
+            i += 1
+
+        # Remove bits adicionais adicionados para alinhamento (zero padding)
+        while len(bits_desenquadrados) % 8 != 0:
+            bits_desenquadrados.pop()
+
+        # Converte os bits de volta para bytes
+        dados = bytes(
+            int(''.join(bits_desenquadrados[i:i+8]), 2)
+            for i in range(0, len(bits_desenquadrados), 8)
+        )
+        return dados
+        
     
     def hamming(dado: bytes) -> bytes:
         """

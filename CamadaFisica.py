@@ -28,7 +28,7 @@ class CamadaFisica:
         if(tipo == "NRZ-Polar"):
             return CamadaFisica.decodificar_nrz_polar(dado)
         elif(tipo == "Manchester"):
-            print("Falta implementar")
+            return CamadaFisica.decodificar_manchester(dado)
         elif(tipo == "Bipolar"):
             return CamadaFisica.decodificar_bipolar(dado)
         raise ValueError(f"Tipo de codificação inválida: {tipo}")
@@ -163,9 +163,37 @@ class CamadaFisica:
 
     def decodificar_manchester(sinal_digital:list) -> bytes:
         """
-        Comentário...
+        Decodifica um sinal codificado em Manchester, recuperando os bytes originais.
+
+        Dinâmica da decodificação:
+            • Cada bit original foi convertido em 2 bits no sinal:
+                - '10' → bit original 1
+                - '01' → bit original 0
+            • Percorre o sinal de 2 em 2 bits para reconstruir os bits originais.
+            • Converte os bits em bytes.
+
+        Parâmetro:
+        • sinal (list[int]): Lista com o sinal codificado Manchester.
+
+        Retorna:
+        • bytes: Dados decodificados.
         """
-        pass
+        bits_recuperados = ''
+        for i in range(0, len(sinal_digital), 2):
+            par = sinal_digital[i:i+2]
+            if par == [1, 0]:
+                bits_recuperados += '1'
+            elif par == [0, 1]:
+                bits_recuperados += '0'
+            else:
+                raise ValueError(f"Sinal Manchester inválido no par: {par}")
+
+        # Agrupa os bits em bytes (8 bits por byte)
+        bytes_recuperados = bytes(
+            int(bits_recuperados[i:i+8], 2) 
+            for i in range(0, len(bits_recuperados), 8)
+        )
+        return bytes_recuperados
 
 
     def codificar_bipolar(dado:bytes) -> list:
