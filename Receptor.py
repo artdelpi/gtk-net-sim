@@ -5,7 +5,7 @@ import numpy as np
 from queue import Queue
 from CamadaFisica import CamadaFisica
 from CamadaEnlace import Enlace
-from Utils import byte_formarter, graph_generator
+from Utils import byte_formarter, graph_generator, graph_constellation_8qam
 
 class Receptor:
     def __init__(self, host="localhost", port=711, gui_queue=Queue()):
@@ -112,37 +112,40 @@ class Receptor:
                 sinal_digital, sinal_modulado = sinal_digital_ruidoso, sinal_modulado_ruidoso # Atualiza sinais, caso haja erro
 
             else:
-                # Camada Física: Exibe sinal analógico (Sem demodular)
-                self.gui_queue.put([
-                    "fisica", 
-                    graph_generator(sinal_modulado, f"Sinal Recebido SEM RUÍDO ({tipo_mod_analogica})", 'sinal_analogico')
-                ])
+                if (tipo_mod_analogica == "8-QAM"):
+                    self.gui_queue.put([
+                        "fisica",
+                        graph_constellation_8qam(data=sinal_modulado)
+                    ])
+                else:
+                    # Camada Física: Exibe sinal analógico (Sem demodular)
+                    self.gui_queue.put([
+                        "fisica", 
+                        graph_generator(sinal_modulado, f"Sinal Recebido SEM RUÍDO ({tipo_mod_analogica})", 'sinal_analogico')
+                    ])
 
                 # Camada Física: Demodulação do Sinal Digital
                 self.gui_queue.put([
                     "fisica", 
                     graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')
                 ])
-            # Demodula sinal digital
+            # Demodula sinal digital, obtendo o quadro
             quadro_bytes = CamadaFisica.decodificador_banda_base(tipo_mod_digital, sinal_digital)
 
-            # Verifica o EDC, caso utilizado
-            if (tipo_detecao):
-                self.gui_queue.put([
-                    "enlace", 
-                    f"Quadro com EDC: {byte_formarter(quadro_bytes)}"
-                ])
-                quadro_bytes = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
-                self.gui_queue.put([
-                    "enlace", 
-                    f"Quadro sem EDC: {byte_formarter(quadro_bytes)}"
-                ])
-
-            # Camada de Enlace: Desenquadramento
+            # Camada de Enlace: Exibe quadro recuperado do sinal digital (Com EDC)
             self.gui_queue.put([
                 "enlace", 
-                f"Quadro decodificado: {byte_formarter(quadro_bytes)}"
+                f"Quadro com EDC: {byte_formarter(quadro_bytes)}"
             ])
+
+            # Camada de Enlace: Remoção e verificação do EDC
+            quadro_bytes = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
+            self.gui_queue.put([
+                "enlace", 
+                f"Quadro sem EDC: {byte_formarter(quadro_bytes)}"
+            ])
+
+            # Camada de Enlace: Remoção do enquadramento
             msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_bytes) # Recupera mensagem original, em bytes
             
             self.gui_queue.put(["aplicacao", f"Mensagem recebida (bytes): {byte_formarter(msg_bytes)}"]) # Confirmação de recebimento

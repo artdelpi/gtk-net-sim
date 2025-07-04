@@ -104,3 +104,38 @@ def findall(substring, string):
         if i == -1:
             return l
         l.append(string.find(substring, i))
+
+
+def graph_constellation_8qam(data):
+    """
+    Gera o gráfico para o sinal modulado em 8-QAM.
+
+    Parâmetro:
+    • sinal: lista de tuplas (I, Q) representando o sinal modulado.
+
+    Retorna:
+    • matplotlib.figure.Figure: Objeto Figure do matplotlib contendo o gráfico.
+    """
+    # Separa as componentes I e Q em listas separadas
+    I = [ponto[0] for ponto in data]  # Eixo X: componente em fase
+    Q = [ponto[1] for ponto in data]  # Eixo Y: componente em quadratura
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    
+    # Plota os pontos no plano I-Q
+    ax.scatter(I, Q, color='blue', s=80, edgecolors='black')  # Pontos grandes com borda preta
+    ax.set_title("Constelação 8-QAM")
+    ax.set_xlabel("Componente I (In-Phase)")
+    ax.set_ylabel("Componente Q (Quadrature)")
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+    # Ajusta os limites para ver os pontos da constelação
+    ax.set_xlim(-2, 2)
+    ax.set_ylim(-2, 2)
+
+    # Marca o centro
+    ax.axhline(0, color='gray', linewidth=1)
+    ax.axvline(0, color='gray', linewidth=1)
+
+    fig.tight_layout()
+    return fig

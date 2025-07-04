@@ -3,7 +3,7 @@ import pickle
 from queue import Queue
 from CamadaFisica import CamadaFisica
 from CamadaEnlace import Enlace
-from Utils import byte_formarter, graph_generator
+from Utils import byte_formarter, graph_generator, graph_constellation_8qam, bytes_to_bits
 
 """
 Padrao msg 
@@ -51,13 +51,12 @@ class Transmissor:
                     f'Mensagem Enquadrada em Bits: {byte_formarter(framed_msg)}'
                 ]) # Exibe quadro (em bits) na interface gráfica
 
-                # Aplica EDC (Error Detection Code), caso selecionado
-                if (tipo_detecao):
-                    framed_msg = Enlace.aplicar_edc(tipo_detecao, framed_msg, tamanho_do_edc)
-                    self.gui_queue.put([
-                        "enlace", 
-                        f"Quadro com EDC: {byte_formarter(framed_msg)}"
-                    ])
+                # Aplica EDC (Error Detection Code) selecionado
+                framed_msg = Enlace.aplicar_edc(tipo_detecao, framed_msg, tamanho_do_edc)
+                self.gui_queue.put([
+                    "enlace", 
+                    f"Quadro com EDC: {byte_formarter(framed_msg)}"
+                ])
                 
                 # Camada Física: Codificação Banda Base
                 encoded_signal = CamadaFisica.codficador_banda_base(tipo_mod_digital, framed_msg) # Aplica codificação banda base no quadro
@@ -67,11 +66,18 @@ class Transmissor:
                 ]) # Exibe gráfico resultante da codificação banda base
                 
                 # Camada Física: Modulação Analógica
-                modulated_signal = CamadaFisica.modulador(tipo_mod_analogica, encoded_signal) # Aplica modulação analógica no sinal digital
-                self.gui_queue.put([
-                    "fisica", 
-                    graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}', signal_type='sinal_analogico')
-                ]) # Exibe gráfico resultante da codificação analógica
+                modulated_signal = CamadaFisica.modulador(tipo_mod_analogica, framed_msg) # Aplica modulação analógica no sinal digital
+            
+                if (tipo_mod_analogica == "8-QAM"):
+                    self.gui_queue.put([
+                        "fisica", 
+                        graph_constellation_8qam(data=modulated_signal)
+                    ]) # Exibe gráfico modulado com 8-QAM (função específica)
+                else:
+                    self.gui_queue.put([
+                        "fisica", 
+                        graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}', signal_type='sinal_analogico')
+                    ]) # Exibe gráfico resultante da codificação analógica
 
                 # Transmissão da Mensagem: Conecta com o Receptor
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

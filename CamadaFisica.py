@@ -196,7 +196,7 @@ class CamadaFisica:
         return bytes_recuperados
 
 
-    def codificar_bipolar(dado:bytes) -> list:
+    def codificar_bipolar(quadro:bytes) -> list:
         """
         Transforma uma sequência de bytes em um sinal codificado no formato bipolar AMI (Alternate Mark Inversion).
 
@@ -205,16 +205,16 @@ class CamadaFisica:
             • Bit 1 → +1 ou -1
 
         Parâmetro:
-        • dado (bytes): Um quadro da camada de enlace.
+        • quadro (bytes): Um quadro da camada de enlace.
 
         Retorna:
         • list[int]: Lista com o sinal bipolar.
 
         Exemplo:
-            Entrada: b"A" → bits "0101001"
+            Entrada: b"A" → bits "0101001" → [0, 1, 0, 1, 0, 0, 1]
             Saída: [0, 1, 0, -1, 0, 0, 1]
         """
-        bits_str = Utils.byte_formarter(dado).replace(' ', '')
+        bits_str = Utils.byte_formarter(quadro).replace(' ', '')
         sinal = []
         polaridade = 1
 
@@ -243,7 +243,7 @@ class CamadaFisica:
 
         Exemplo:
             Entrada: [1, 0, -1, 0, 1, 0, -1, 0]
-            Saída:    '10101010'
+            Saída: '10101010'
         """
         # Tratamento pra ruído: caso algum valor não seja -1, 0 ou 1
         if (any(v not in (1, 0, -1) for v in sinal)):
@@ -271,12 +271,12 @@ class CamadaFisica:
         return bytes(int(bloco, 2) for bloco in blocos)
 
 
-    def modular_fsk(sinal_digital: list, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
+    def modular_fsk(quadro: bytes, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
         """
-        Modula um sinal digital usando FSK (Frequency Shift Keying).
+        Modula um quadro usando FSK (Frequency Shift Keying).
         
         Parâmetros:
-        • sinal_digital: lista com bits (0s e 1s).
+        • quadro (bytes): Um quadro da camada de enlace.
         • f0: frequência para bit 0 (em Hz).
         • f1: frequência para bit 1 (em Hz).
         • amostras_por_bit: número de amostras (pontos no gráfico) por bit.
@@ -285,12 +285,14 @@ class CamadaFisica:
         Retorna:
         • Lista com o sinal FSK modulado (amostrado).
         """
+        bits_str = Utils.byte_formarter(quadro).replace(" ", "") # String de bits (ex: "00101...")
+
         dt = 1 / fs  # Tempo entre amostras
         fase = 0     # Fase acumulada
         sinal_modulado = []
 
-        for bit in sinal_digital:
-            freq = f1 if bit == 1 else f0
+        for bit in bits_str:
+            freq = f1 if int(bit) == 1 else f0
             for _ in range(amostras_por_bit):
                 fase += 2 * np.pi * freq * dt
                 sinal_modulado.append(np.sin(fase))
@@ -298,20 +300,21 @@ class CamadaFisica:
         return sinal_modulado
 
 
-    def modular_ask(sinal_digital: list, amostras_por_bit: int = 100, fs: int = 800,) -> list:
+    def modular_ask(quadro: bytes, amostras_por_bit: int = 100, fs: int = 800) -> list:
         """
         Gera um sinal modulado em ASK (Amplitude Shift Keying) com ciclo completo por bit.
         
         Parâmetros:
-        sinal_digital (list): Lista de bits (0s e 1s) a ser modulada
-        amostras_por_bit (int): Número de amostras por bit (default=100)
-        fs (int): Frequência de amostragem em Hz (default=800)
-        freq (float): Frequência da portadora em Hz. Se None, será calculada para 1 ciclo/bit (default=None)
+        • quadro (bytes): Um quadro da camada de enlace.
+        • amostras_por_bit: número de amostras (pontos no gráfico) por bit.
+        • freq (float): Frequência da portadora em Hz. Se None, será calculada para 1 ciclo/bit (default=None).
+        • fs: frequência de amostragem (em Hz).
         
         Retorna:
-        list: Sinal modulado em ASK
+        • list: Sinal modulado em ASK
         """
-        
+        bit_str = Utils.byte_formarter(quadro).replace(" ","") # String de bits (ex: "00101...")
+
         # Calcula frequência padrão para 1 ciclo completo por bit
         freq = fs / amostras_por_bit
         
@@ -319,33 +322,33 @@ class CamadaFisica:
         tempo_acumulado = 0  # Mantém o tempo contínuo
         sinal_modulado = []
         
-        for bit in sinal_digital:
+        for bit in bit_str:
             for _ in range(amostras_por_bit):
-                if bit == 1:
-                    fase = 2 * np.pi * freq * tempo_acumulado
+                if int(bit) == 1:
+                    fase = 2 * np.pi * freq * tempo_acumulado # Amplitude =/= zero
                     sinal_modulado.append(np.sin(fase))
                 else:
-                    sinal_modulado.append(0)
+                    sinal_modulado.append(0) # Amplitude zero
                     
                 tempo_acumulado += dt  # Atualiza o tempo
                 
         return sinal_modulado
     
 
-    def modular_8qam(sinal_digital: list) -> list:
+    def modular_8qam(quadro: bytes) -> list:
         """
         Modula um sinal digital usando 8-QAM.
 
         • Cada grupo de 3 bits representa um ponto na constelação (I, Q).
-        • O mapeamento é feito com uma tabela fixa:
+        • O mapeamento é feito com uma tabela fixa.
 
         Parâmetro:
-        • sinal_digital: lista com bits (0s e 1s).
+        • quadro (bytes): Um quadro da camada de enlace.
 
         Retorna:
-        • Lista de tuplas (I, Q) representando do sinal modulado.
+        • Lista de tuplas (I, Q) representando o sinal modulado.
         """
-        
+        # Tabela de mapeamento da constelação 8-QAM
         rangeMap = {
             '000': (-1, -1),
             '001': (-1, 0),
@@ -357,16 +360,23 @@ class CamadaFisica:
             '111': (1, 1)
         }
 
-        bits_str = ''.join(f'{byte:08b}' for byte in sinal_digital)
+        # Converte quadro (em bytes) em uma string de bits
+        bits_str = Utils.byte_formarter(quadro).replace(" ", "")
 
+        # Faz padding para múltiplo de 3 bits (necessário para 8-QAM)
         padding = (3 - len(bits_str) % 3) % 3
-        bits_str += '0' * padding
 
+        # Adiciona 0s no final, se necessário
+        bits_str += '0' * padding 
+
+        # Armazena os pontos (I, Q) modulados
         sinal = []
 
+        # Percorre a string de bits em blocos de 3 bits
         for i in range(0, len(bits_str), 3):
-            bit_trio = bits_str[i:i+3]
-            simbolo = rangeMap.get(bit_trio, (0, 0)) 
-            sinal.append(simbolo)
+            bit_trio = bits_str[i:i+3] # Extrai grupo de 3 bits
+            simbolo = rangeMap.get(bit_trio, (0, 0))  # Mapeamento 8-QAM
+            sinal.append(simbolo) # Adiciona o símbolo (I, Q) na lista de saída
 
+        # Lista com os pontos modulados
         return sinal
