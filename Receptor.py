@@ -93,17 +93,15 @@ class Receptor:
                     graph_generator(sinal_modulado_ruidoso.tolist(), f"Sinal Recebido COM RUÍDO ({tipo_mod_analogica})", "sinal_analogico")
                 ])
 
-                # Gera vetor de ruído pro sinal digital
-                ruido = np.random.normal(0, sigma, size=len(sinal_digital))
-
-                ruido_por_bit = [] # Acumula a média do ruído anterior pra cada 100 pontos (1 bit)
+                # Acumula a média do ruído anterior pra cada 100 pontos (1 bit)     
+                ruido_por_bit = [] 
 
                 # Pra cada 100 pontos (1 bit)
-                for i in range(0, len(ruido), 100):
+                for i in range(0, len(ruido), 100): # (0, 100, 200, 300 ...)
                     media = np.mean(np.array(ruido[i:i+100])) # Tira média de ruído de 100 amostras
                     ruido_por_bit.append(media) # Guarda essa média
                 
-                # Aplica mesmo ruído do sinal analógico no digital
+                # Aplica (soma) as médias do ruído de cada 100 pontos ao valor digital correspondente
                 sinal_digital_ruidoso = np.array(sinal_digital) + ruido_por_bit
                 
                 # Camada Física: Exibe Sinal Digital COM RUÍDO
