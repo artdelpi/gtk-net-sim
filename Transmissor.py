@@ -85,7 +85,8 @@ class Transmissor:
                         "mod_digital": data["mod_digital"],
                         "enquadramento": data["enquadramento"],
                         "edc": data["edc"], # Tamanho do EDC
-                        "detecao": data["detecao"] # Tipo do EDC
+                        "detecao": data["detecao"], # Tipo do EDC
+                        "erros": data["erros"]
                     }
 
                     # Serializa o dicionário em bytes para envio

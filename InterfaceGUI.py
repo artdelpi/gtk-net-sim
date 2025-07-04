@@ -44,7 +44,7 @@ class Simulador(Gtk.Window):
             ("Tipo de detecção ou correção", self.detecao),
             ("Tipo de modulação digital", self.mod_digital),
             ("Tipo de modulação analógica", self.mod_analogica),
-            ("Taxa de erros", self.erros)
+            ("Nível de ruído (σ)", self.erros)
         ]
 
         self.simular_btn = Gtk.Button(label="Simular")
@@ -53,7 +53,8 @@ class Simulador(Gtk.Window):
 
         self.tamanho_quadro.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
         self.edc.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
-        self.erros.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
+        self.erros.set_adjustment(Gtk.Adjustment(lower=0, upper=100, step_increment=0.1, page_increment=1))
+        self.erros.set_digits(2)
 
         tipos_enquadramento = [
             "Contagem de caracteres",
@@ -138,7 +139,7 @@ class Simulador(Gtk.Window):
             "detecao": self.detecao.get_active_text(),
             "mod_digital": self.mod_digital.get_active_text(),
             "mod_analogica": self.mod_analogica.get_active_text(),
-            "erros": self.erros.get_value_as_int()
+            "erros": self.erros.get_value()
         })
     
     def atualizar_saidas(self):

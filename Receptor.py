@@ -1,6 +1,7 @@
 import socket
 import time
 import pickle
+import numpy as np
 from queue import Queue
 from CamadaFisica import CamadaFisica
 from CamadaEnlace import Enlace
@@ -74,19 +75,51 @@ class Receptor:
             tipo_enquadramento = data["enquadramento"]
             tipo_detecao = data["detecao"]
             tamanho_do_edc = data["edc"]
+            taxa_de_erros = data["erros"]
 
-            # Camada Física: Exibe sinal analógico (Sem demodular)
-            self.gui_queue.put([
-                "fisica", 
-                graph_generator(sinal_modulado, f"Sinal Recebido ({tipo_mod_analogica})", 'sinal_analogico')
-            ])
+            # Tratamento dos sinais caso haja ruído
+            if (float(taxa_de_erros) > 0):
+                sigma = taxa_de_erros # Desvio padrão do ruído
 
-            # Camada Física: Demodulação do Sinal Digital
-            self.gui_queue.put([
-                "fisica", 
-                graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')
-            ])
-            quadro_bytes = CamadaFisica.decodificador_banda_base(tipo_mod_digital, sinal_digital) # Demodula sinal digital
+                # Gera vetor de ruído pro sinal analógico considerando Curva Gaussiana
+                ruido = np.random.normal(0, sigma, size=len(sinal_modulado))
+
+                # Aplica ruído no sinal analógico (Alteração em todos os pontos)
+                sinal_modulado_ruidoso = np.array(sinal_modulado) + ruido
+
+                # Camada Física: Exibe sinal analógico COM RUÍDO (Sem demodular)
+                self.gui_queue.put([
+                    "fisica",
+                    graph_generator(sinal_modulado_ruidoso.tolist(), f"Sinal Recebido COM RUÍDO ({tipo_mod_analogica})", "sinal_analogico")
+                ])
+
+                # Gera vetor de ruído pro sinal digital
+                ruido = np.random.normal(0, sigma, size=len(sinal_digital))
+
+                # Aplica no sinal digital
+                sinal_digital_ruidoso = np.array(sinal_digital) + ruido
+                
+                # Camada Física: Exibe Sinal Digital COM RUÍDO
+                self.gui_queue.put([
+                    "fisica",
+                    graph_generator(sinal_digital_ruidoso.tolist(), f"Sinal Demodulado COM RUÍDO ({tipo_mod_digital})", "sinal_banda_base")
+                ])
+                sinal_digital, sinal_modulado = sinal_digital_ruidoso, sinal_modulado_ruidoso # Atualiza sinais, caso haja erro
+
+            else:
+                # Camada Física: Exibe sinal analógico (Sem demodular)
+                self.gui_queue.put([
+                    "fisica", 
+                    graph_generator(sinal_modulado, f"Sinal Recebido SEM RUÍDO ({tipo_mod_analogica})", 'sinal_analogico')
+                ])
+
+                # Camada Física: Demodulação do Sinal Digital
+                self.gui_queue.put([
+                    "fisica", 
+                    graph_generator(sinal_digital, f"Sinal Demodulado ({tipo_mod_digital})", 'sinal_banda_base')
+                ])
+            # Demodula sinal digital
+            quadro_bytes = CamadaFisica.decodificador_banda_base(tipo_mod_digital, sinal_digital)
 
             # Verifica o EDC, caso utilizado
             if (tipo_detecao):

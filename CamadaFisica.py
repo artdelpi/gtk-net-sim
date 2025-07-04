@@ -73,7 +73,6 @@ class CamadaFisica:
 
         # Faz o mapeamento 0 → -1 e 1 → +1
         sinal = [1 if bit == '1' else -1 for bit in bits_str]
-        print(sinal)
         return sinal
 
 
@@ -96,6 +95,19 @@ class CamadaFisica:
             Entrada: [-1, 1, -1, -1, -1, -1, 1, -1]
             Saída: bits "01000001" → b"A"
         """
+        # Tratamento pra ruído: caso algum valor não seja -1 ou 1
+        if (any(v not in (1, -1) for v in sinal_digital)):
+            buffer = []
+            for v in sinal_digital:
+                # Entende valores < 0 como -1
+                if (v < 0):
+                    buffer.append(-1)
+                else:
+                # Entende valores >=0 como 1
+                    buffer.append(1)
+            # Atualiza sinal digital pra decodificar após ajuste
+            sinal_digital = buffer
+
         # Desfaz o mapeamento da NRZ-Polar numa string dos bits
         bits_str = "".join(["1" if v == 1 else "0" for v in sinal_digital])
 

@@ -34,12 +34,16 @@ def graph_generator(data, title, signal_type):
         if signal_type == 'sinal_banda_base':
             x = np.arange(len(data) + 1)
             largura = max(6, len(data) * 300)
-            altura = 2.5
+            altura = 6
             fig, ax = plt.subplots(figsize=(largura, altura))
             data_extended = np.append(data, data[-1])  # Mantém o último degrau até o fim
             ax.step(x, data_extended, where='post', color='r', linewidth=2.5)
-            ax.set_ylim((min(data) - 0.1), 1.1)  
-            ax.set_yticks([min(data), 1])
+            y_min = min(data)
+            y_max = max(data)
+            ax.set_ylim(y_min - 0.1, y_max + 0.1)
+            num_ticks = 5  # Quantidade de marcas no eixo Y
+            tick_values = np.linspace(y_min, y_max, num_ticks)
+            ax.set_yticks(tick_values)
             ax.set_title(title)
             ax.grid(True, linestyle='--', alpha=0.6)
             # Marca um tick por bit
@@ -54,7 +58,8 @@ def graph_generator(data, title, signal_type):
             return fig
         elif signal_type == 'sinal_analogico':
             x = np.arange(len(data))
-            largura = max(6, len(data) // 300)
+            max_largura = 100  # Limite máximo seguro (ajuste se necessário)
+            largura = min(max_largura, max(6, len(data) // 300))        
             altura = 3 
             fig, ax = plt.subplots(figsize=(largura, altura))
             ax.plot(x, data, linewidth=1.5)
