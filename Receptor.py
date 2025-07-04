@@ -96,8 +96,15 @@ class Receptor:
                 # Gera vetor de ruído pro sinal digital
                 ruido = np.random.normal(0, sigma, size=len(sinal_digital))
 
-                # Aplica no sinal digital
-                sinal_digital_ruidoso = np.array(sinal_digital) + ruido
+                ruido_por_bit = [] # Acumula a média do ruído anterior pra cada 100 pontos (1 bit)
+
+                # Pra cada 100 pontos (1 bit)
+                for i in range(0, len(ruido), 100):
+                    media = np.mean(np.array(ruido[i:i+100])) # Tira média de ruído de 100 amostras
+                    ruido_por_bit.append(media) # Guarda essa média
+                
+                # Aplica mesmo ruído do sinal analógico no digital
+                sinal_digital_ruidoso = np.array(sinal_digital) + ruido_por_bit
                 
                 # Camada Física: Exibe Sinal Digital COM RUÍDO
                 self.gui_queue.put([
