@@ -128,11 +128,11 @@ class Receptor:
                     f"Quadro com EDC: {byte_formarter(quadro_bytes)}"
                 ])
                 quadro_bytes = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
+                print(type(quadro_bytes))
                 self.gui_queue.put([
                     "enlace", 
                     f"Quadro sem EDC: {byte_formarter(quadro_bytes)}"
                 ])
-
             # Camada de Enlace: Desenquadramento
             self.gui_queue.put([
                 "enlace", 

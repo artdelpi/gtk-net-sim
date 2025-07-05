@@ -102,3 +102,21 @@ def findall(substring, string):
         if i == -1:
             return l
         l.append(string.find(substring, i))
+
+def findXor(a:str, b:str) -> str:
+    """
+    Realiza o Xor bit a bit da palavra
+     
+    Args:
+        a: string que será relizada o xor
+        b: string que será relizada o xor
+    
+    Returns:
+        String com do resultado do xor bit a bit de a e b 
+
+    """
+    n = len(b)
+    result = ""
+    for i in range(1, n):  # Skip first bit (CRC standard)
+        result += '0' if a[i] == b[i] else '1'
+    return result

@@ -1,6 +1,7 @@
 import Utils
 
 class Enlace:
+    @staticmethod
     def enquadramento(tipo:str, dado:bytes) -> bytes:
         """
         Escolhe e executa algum tipo de enquadramento.
@@ -21,7 +22,7 @@ class Enlace:
             return Enlace.enquadrar_flag_insercao_bit(dado)
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
 
-
+    @staticmethod
     def desenquadramento(tipo:str, dado:bytes) -> bytes:
         """
         Escolhe e executa algum tipo de desenquadramento.
@@ -42,7 +43,7 @@ class Enlace:
             print("Falta implementar")
         raise ValueError(f"Tipo de enquadramento inválido: {tipo}")
 
-
+    @staticmethod
     def aplicar_edc(tipo:str, quadro:bytes, edc:int) -> bytes:
         if tipo == "Bit de paridade par":
             return Enlace.bit_de_paridade_par(quadro)
@@ -52,7 +53,8 @@ class Enlace:
             return Enlace.hamming(quadro)
         raise ValueError(f"Tipo de EDC inválido: {tipo}")
 
-
+   
+    @staticmethod
     def verificar_edc(tipo:str, quadro:bytes, edc:int) -> bytes:
         if tipo == "Bit de paridade par":
             return Enlace.verifica_bit_de_paridade_par(quadro)
@@ -62,7 +64,8 @@ class Enlace:
             return Enlace.verifica_hamming(quadro)
         raise ValueError(f"Tipo de EDC inválido: {tipo}")
 
-
+    
+    @staticmethod
     def enquadrar_contagem_caracteres(dado:bytes) -> bytes:
         """
         Enquadramento por contagem de caracteres.
@@ -89,7 +92,7 @@ class Enlace:
         quadro = tamanho_byte + dado # Quadro = Tamanho_do_Payload + Payload
         return quadro
 
-
+    @staticmethod
     def desenquadrar_contagem_caracteres(quadro:bytes) -> bytes:
         """
         Desfaz o enquadramento por contagem de caracteres.
@@ -105,7 +108,7 @@ class Enlace:
         """
         return quadro[1:] # Remove primeiro byte
 
-
+    @staticmethod
     def enquadrar_flag_insercao_byte(dado:bytes, flag='flag', esc='esc') -> bytes:
         """
         Enquadramento por insercao de bytes.
@@ -137,7 +140,7 @@ class Enlace:
                dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]            
         return (flag + dado + flag).encode()
 
-
+    @staticmethod
     def desenquadrar_flag_insercao_byte(quadro: bytes, flag='flag', esc='esc') -> bytes:
         """
         Desenquadramento por insercao de bytes.
@@ -196,7 +199,7 @@ class Enlace:
 
         return ''.join(resultado).encode("utf-8")
 
-
+    @staticmethod
     def enquadrar_flag_insercao_bit(dado:bytes) -> bytes:
         """
         Enquadra os dados usando a técnica de bit stuffing com flag 0x7E (01111110).
@@ -245,11 +248,11 @@ class Enlace:
         # Adiciona FLAG 0x7E no início e no final
         return FLAG + bytes_preenchidos + FLAG
     
-
+    @staticmethod
     def desenquadrar_flag_insercao_bit(quadro:bytes) -> bytes:
         pass
     
-    
+    @staticmethod
     def hamming(dado: bytes) -> bytes:
         """
         Codifica os dados usando o código de Hamming (7,4).
@@ -314,7 +317,7 @@ class Enlace:
         # Converte a lista para bytes e retorna
         return bytes(codificacao_bytes)
 
-        
+    @staticmethod   
     def bit_de_paridade_par(quadro:bytes) -> bytes:
         """
         Força o quadro a ter número par de 1s, através do bit de paridade par.
@@ -346,7 +349,8 @@ class Enlace:
             return quadro + b"\x01"
         else:
             return quadro + b"\x00"
-
+    
+    @staticmethod
     def verifica_bit_de_paridade_par(quadro:bytes) -> bytes:
         """
         Detecta erro se o número de bits 1 é ímpar e remove o bit de paridade.
@@ -371,6 +375,83 @@ class Enlace:
         
         # Remove o último byte com o bit de paridade
         return quadro[:-1]
+    
+    @staticmethod
+    def crc(quadro:bytes, chave="100000100110000010001110110110111") -> bytes:
+        """
+        Codifica o quadro com o método Cyclic Redundancy Check (CRC). A palavra original é preenchida com zeros e codificada 
+        através da divisão de módulo 2 pela chave. Ao final, o resto é acrescido no preenchimento de zeros.
 
-    def crc(quadro:bytes, tamanho_do_edc:int) -> bytes:
-        pass
+        Parâmetro:
+        • quadro(bytes): palavra a ser codificada
+        • chave(string): chave com qual a palavra será codificada
+
+        Retorna:
+        • bytes: Quadro codificado.
+        """
+        bits = Utils.byte_formarter(quadro).replace(" ", "")
+        key_size = len(chave)
+
+        padded_data = bits + '0' * (key_size - 1)
+        n = len(padded_data)
+        pick = len(chave)
+        resto = padded_data[0:pick]  # Initial window
+        
+        while pick < n:
+            if resto[0] == '1':
+                # XOR with chave and bring down next bit
+                resto = Utils.findXor(chave, resto) + padded_data[pick]
+            else:
+                # XOR with zeros and bring down next bit
+                resto = Utils.findXor('0' * pick, resto) + padded_data[pick]
+            pick += 1
+        
+        if resto[0] == '1':
+            resto = Utils.findXor(chave, resto)
+        else:
+            resto = Utils.findXor('0' * pick, resto)  
+        
+        result_bits = bits + resto
+        byte_value = int(result_bits, 2).to_bytes((len(result_bits) + 7) // 8, 'big')
+        return byte_value
+
+
+    @staticmethod
+    def verifica_crc(quadro:bytes, chave="100000100110000010001110110110111") -> bytes:
+        """
+        Verifica se o quadro possui erros com  o CRC. Caso a divisão de módulo 2 da palavra codificada pela chave gere resto
+        há erros. 
+
+        Parâmetro:
+        • quadro(bytes): Palavra codificada com CRC
+        • chave(string): chave com qual a palavra será decodificada. Deve ser a mesma utilizada na codificação
+
+        Retorna:
+        • bytes: Quadro decodificado.
+        """
+        bits = Utils.byte_formarter(quadro).replace(" ", "")
+        n = len(bits)
+        pick = len(chave)
+        resto = bits[0:pick]  # Initial window
+
+        while pick < n:
+            if resto[0] == '1':
+                # XOR with chave and bring down next bit
+                resto = Utils.findXor(chave, resto) + bits[pick]
+            else:
+                # XOR with zeros and bring down next bit
+                resto = Utils.findXor('0' * pick, resto) + bits[pick]
+            pick += 1
+
+        # Final XOR step
+        if resto[0] == '1':
+            resto = Utils.findXor(chave, resto)
+        else:
+            resto = Utils.findXor('0' * pick, resto)
+        
+        if '1' in resto:
+            raise ValueError("Erro no CRC!")
+        
+        result_bits = bits[:-(len(chave) - 1)]
+        byte_value = int(result_bits, 2).to_bytes((len(result_bits) + 7) // 8, 'big')
+        return byte_value
