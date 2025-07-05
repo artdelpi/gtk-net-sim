@@ -3,7 +3,7 @@ import pickle
 from queue import Queue
 from CamadaFisica import CamadaFisica
 from CamadaEnlace import Enlace
-from Utils import byte_formarter, graph_generator, graph_constellation_8qam, bytes_to_bits
+from Utils import byte_formarter, graph_generator, graph_constellation_8qam
 
 """
 Padrao msg 
@@ -67,7 +67,7 @@ class Transmissor:
                 
                 # Camada Física: Modulação Analógica
                 modulated_signal = CamadaFisica.modulador(tipo_mod_analogica, framed_msg) # Aplica modulação analógica no sinal digital
-            
+
                 if (tipo_mod_analogica == "8-QAM"):
                     self.gui_queue.put([
                         "fisica", 
@@ -76,7 +76,7 @@ class Transmissor:
                 else:
                     self.gui_queue.put([
                         "fisica", 
-                        graph_generator(data=modulated_signal, title=f'Sinal Codificado em {data["mod_analogica"]}', signal_type='sinal_analogico')
+                        graph_generator(data=modulated_signal, title=f'Sinal Analógico Modulado em ({data["mod_analogica"]})', signal_type='sinal_analogico')
                     ]) # Exibe gráfico resultante da codificação analógica
 
                 # Transmissão da Mensagem: Conecta com o Receptor

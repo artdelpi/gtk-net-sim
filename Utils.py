@@ -24,30 +24,112 @@ def graph_generator(data, title, signal_type):
     Gera um gráfico a partir de um array de inteiros e um título.
     
     Args:
-        array: Lista de inteiros para plotar.
-        titulo: Título do gráfico.
+        data (list): Lista de inteiros para plotar no gráfico.
+        titulo (str): Título do gráfico.
+        signal_type (str): Sinal analógico ou digital
     
     Returns:
         Figure: Objeto Figure do matplotlib contendo o gráfico.
     """
     if data:
-        if signal_type == 'sinal_banda_base':
-            amostras = 100 # 100 pontos por bit (nível de tensão)
-            data_expandido = np.repeat(data, amostras)
-            x = np.arange(len(data_expandido) + 1) 
-            largura = max(6, len(data) * 3)  
-            altura = 6
+        if title == "Sinal Analógico Recebido em (8-QAM)" or title == "Sinal Analógico Modulado em (8-QAM)":
+            # ===========================================
+            # SINAL ANALÓGICO - Especificamente pro 8-QAM
+            # ===========================================
+            # Separa as componentes I e Q em listas separadas
+            I = [ponto[0] for ponto in data]  # Eixo X: componente em fase
+            Q = [ponto[1] for ponto in data]  # Eixo Y: componente em quadratura
+
+            fig, ax = plt.subplots(figsize=(6, 6))
+            
+            # Plota os pontos no plano I-Q
+            ax.scatter(I, Q, color='blue', s=80, edgecolors='black')  # Pontos grandes com borda preta
+            ax.set_title("Constelação 8-QAM")
+            ax.set_xlabel("Componente I (In-Phase)")
+            ax.set_ylabel("Componente Q (Quadrature)")
+            ax.grid(True, linestyle='--', alpha=0.6)
+
+            # Ajusta os limites para ver os pontos da constelação
+            ax.set_xlim(-2, 2)
+            ax.set_ylim(-2, 2)
+
+            # Marca o centro
+            ax.axhline(0, color='gray', linewidth=1)
+            ax.axvline(0, color='gray', linewidth=1)
+
+            fig.tight_layout()
+            return fig
+        
+        elif signal_type == "sinal_analogico":
+            # =============================================
+            # SINAL ANALÓGICO - Somente ASK e FSK (Sem QAM)
+            # =============================================
+            x = np.arange(len(data))  # Eixo X baseado no número de amostras
+
+            # Define tamanho do gráfico
+            max_largura = 100  # Limite máximo de largura (ajuste conforme necessário)
+            largura = min(max_largura, max(6, len(data) // 300))  # Escala conforme o tamanho do sinal
+            altura = 3  # Altura fixa
+
             fig, ax = plt.subplots(figsize=(largura, altura))
-            data_extended = np.append(data_expandido, data_expandido[-1])  # Mantém o último degrau
+
+            # Gera o gráfico de linha
+            ax.plot(x, data, linewidth=1.5)
+
+            # Configura o eixo X para mostrar ticks por bit (100 pontos por bit)
+            num_bits = len(data) // 100
+            tick_positions = [i * 100 for i in range(num_bits + 1)]
+            tick_labels = [str(i) for i in range(num_bits + 1)]
+            ax.set_xticks(tick_positions)
+            ax.set_xticklabels(tick_labels)
+            ax.tick_params(axis='x', labelsize=6)
+
+            # Título, labels e grid
+            ax.set_title(title)
+            ax.set_xlabel("T (Tempo de Bit)")
+            ax.set_ylabel("Amplitude")
+            ax.grid(True, alpha=0.3)
+
+            fig.tight_layout()
+            return fig
+
+        elif signal_type == "sinal_banda_base":
+            # ==========================
+            # SINAL DIGITAL (BANDA BASE)
+            # ==========================
+            amostras = 100  # Cada bit será representado por 100 amostras
+            
+            # Expande o sinal para "degrafiar" os bits no tempo (sinal degrau)
+            data_expandido = np.repeat(data, amostras)
+            
+            # Cria o eixo X com uma amostra extra no final para manter o degrau no fim
+            x = np.arange(len(data_expandido) + 1)
+            
+            # Define tamanho do gráfico
+            largura = max(6, len(data) * 3)  # Largura proporcional ao número de bits
+            altura = 6  # Altura fixa
+
+            fig, ax = plt.subplots(figsize=(largura, altura))
+
+            # Extende o sinal para manter o último degrau até o fim
+            data_extended = np.append(data_expandido, data_expandido[-1])
+
+            # Gera o gráfico em degraus (sinal digital)
             ax.step(x, data_extended, where='post', color='r', linewidth=2.5)
+
+            # Configura o eixo Y (nível de tensão)
             y_min = min(data)
             y_max = max(data)
             ax.set_ylim(y_min - 0.1, y_max + 0.1)
             num_ticks = 5
             tick_values = np.linspace(y_min, y_max, num_ticks)
             ax.set_yticks(tick_values)
+
+            # Título e grid
             ax.set_title(title)
             ax.grid(True, linestyle='--', alpha=0.6)
+
+            # Configura o eixo X para mostrar ticks por bit
             num_bits = len(data)
             tick_positions = [i * amostras for i in range(num_bits + 1)]
             tick_labels = [str(i) for i in range(num_bits + 1)]
@@ -55,31 +137,11 @@ def graph_generator(data, title, signal_type):
             ax.set_xticklabels(tick_labels)
             ax.tick_params(axis='x', labelsize=6)
             ax.set_xlabel("T (Tempo de Bit)")
+
+            # Ajusta o layout do gráfico
             fig.subplots_adjust(bottom=0.2)
             return fig
 
-        elif signal_type == 'sinal_analogico':
-            x = np.arange(len(data))
-            max_largura = 100  # Limite máximo seguro (ajuste se necessário)
-            largura = min(max_largura, max(6, len(data) // 300))        
-            altura = 3 
-            fig, ax = plt.subplots(figsize=(largura, altura))
-            ax.plot(x, data, linewidth=1.5)
-
-            num_bits = len(data) // 100
-            tick_positions = [i * 100 for i in range(num_bits + 1)] # Cada bit são 100 pontos (amostras)
-            tick_labels = [f"{i}" for i in range(num_bits + 1)]
-
-            ax.set_xticks(tick_positions)
-            ax.set_xticklabels(tick_labels) 
-            ax.tick_params(axis='x', labelsize=6)
-
-            ax.set_title(title)
-            ax.set_xlabel("T (Tempo de Bit)")
-            ax.set_ylabel("Amplitude")
-            ax.grid(True, alpha=0.3)
-            fig.tight_layout()
-            return fig
         else:
             raise ValueError('Tipo de sinal não reconhecido: {signal_type}')
     else:
