@@ -343,18 +343,19 @@ class CamadaFisica:
         return sinal_modulado
     
     @staticmethod
-    def modular_8qam(quadro: bytes) -> list:
+    def modular_8qam(quadro: bytes, amostras_por_simbolo: int = 100, fs: int = 800) -> list:
         """
-        Modula um sinal digital usando 8-QAM.
-
-        • Cada grupo de 3 bits representa um ponto na constelação (I, Q).
-        • O mapeamento é feito com uma tabela fixa.
-
-        Parâmetro:
-        • quadro (bytes): Um quadro da camada de enlace.
-
+        Gera um sinal modulado em 8-QAM com ciclo(s) completo(s) por símbolo.
+        
+        • Cada grupo de 3 bits representa um símbolo (I, Q).
+        
+        Parâmetros:
+        • quadro (bytes): Quadro da camada de enlace.
+        • amostras_por_simbolo (int): Número de amostras por símbolo.
+        • fs (int): Frequência de amostragem (Hz).
+        
         Retorna:
-        • Lista de tuplas (I, Q) representando o sinal modulado.
+        • list: Sinal modulado 8-QAM (lista de pontos no tempo)
         """
         # Tabela de mapeamento da constelação 8-QAM
         rangeMap = {
@@ -368,23 +369,29 @@ class CamadaFisica:
             '111': (1, 1)
         }
 
-        # Converte quadro (em bytes) em uma string de bits
+        # Converte quadro em string de bits
         bits_str = Utils.byte_formarter(quadro).replace(" ", "")
-
-        # Faz padding para múltiplo de 3 bits (necessário para 8-QAM)
+        
+        # Faz padding pra múltiplo de 3
         padding = (3 - len(bits_str) % 3) % 3
+        bits_str += '0' * padding
 
-        # Adiciona 0s no final, se necessário
-        bits_str += '0' * padding 
+        # Calcula frequência padrão para 1 ciclo por símbolo
+        freq = fs / amostras_por_simbolo
+        
+        dt = 1 / fs  # Período de amostragem
+        tempo_acumulado = 0
+        sinal_modulado = []
 
-        # Armazena os pontos (I, Q) modulados
-        sinal = []
-
-        # Percorre a string de bits em blocos de 3 bits
+        # Modula cada símbolo
         for i in range(0, len(bits_str), 3):
-            bit_trio = bits_str[i:i+3] # Extrai grupo de 3 bits
-            simbolo = rangeMap.get(bit_trio, (0, 0))  # Mapeamento 8-QAM
-            sinal.append(simbolo) # Adiciona o símbolo (I, Q) na lista de saída
+            bits = bits_str[i:i+3]
+            I, Q = rangeMap.get(bits, (0, 0))
+            
+            for _ in range(amostras_por_simbolo):
+                fase = 2 * np.pi * freq * tempo_acumulado
+                s = I * np.cos(fase) + Q * np.sin(fase)
+                sinal_modulado.append(s)
+                tempo_acumulado += dt
 
-        # Lista com os pontos modulados
-        return sinal
+        return sinal_modulado

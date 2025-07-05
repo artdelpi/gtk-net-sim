@@ -5,7 +5,7 @@ import numpy as np
 from queue import Queue
 from CamadaFisica import CamadaFisica
 from CamadaEnlace import Enlace
-from Utils import byte_formarter, graph_generator, graph_constellation_8qam
+from Utils import byte_formarter, graph_generator
 
 class Receptor:
     def __init__(self, host="localhost", port=711, gui_queue=Queue()):
@@ -13,6 +13,7 @@ class Receptor:
         self.port = port
         self.gui_queue = gui_queue
         self.running = True  # Flag de controle
+
 
     def start(self):
         # Mensagem de status no terminal

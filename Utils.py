@@ -32,38 +32,10 @@ def graph_generator(data, title, signal_type):
         Figure: Objeto Figure do matplotlib contendo o gráfico.
     """
     if data:
-        if title == "Sinal Analógico Recebido em (8-QAM)" or title == "Sinal Analógico Modulado em (8-QAM)":
-            # ===========================================
-            # SINAL ANALÓGICO - Especificamente pro 8-QAM
-            # ===========================================
-            # Separa as componentes I e Q em listas separadas
-            I = [ponto[0] for ponto in data]  # Eixo X: componente em fase
-            Q = [ponto[1] for ponto in data]  # Eixo Y: componente em quadratura
-
-            fig, ax = plt.subplots(figsize=(6, 6))
-            
-            # Plota os pontos no plano I-Q
-            ax.scatter(I, Q, color='blue', s=80, edgecolors='black')  # Pontos grandes com borda preta
-            ax.set_title("Constelação 8-QAM")
-            ax.set_xlabel("Componente I (In-Phase)")
-            ax.set_ylabel("Componente Q (Quadrature)")
-            ax.grid(True, linestyle='--', alpha=0.6)
-
-            # Ajusta os limites para ver os pontos da constelação
-            ax.set_xlim(-2, 2)
-            ax.set_ylim(-2, 2)
-
-            # Marca o centro
-            ax.axhline(0, color='gray', linewidth=1)
-            ax.axvline(0, color='gray', linewidth=1)
-
-            fig.tight_layout()
-            return fig
-        
-        elif signal_type == "sinal_analogico":
-            # =============================================
-            # SINAL ANALÓGICO - Somente ASK e FSK (Sem QAM)
-            # =============================================
+        if signal_type == "sinal_analogico":
+            # ===============
+            # SINAL ANALÓGICO
+            # ===============
             x = np.arange(len(data))  # Eixo X baseado no número de amostras
 
             # Define tamanho do gráfico
@@ -86,7 +58,10 @@ def graph_generator(data, title, signal_type):
 
             # Título, labels e grid
             ax.set_title(title)
-            ax.set_xlabel("T (Tempo de Bit)")
+            x_label = "T (Tempo de Bit)"
+            if title == "Sinal Analógico Modulado em (8-QAM)":
+                x_label = "T (Tempo de Símbolo)"
+            ax.set_xlabel(x_label)
             ax.set_ylabel("Amplitude")
             ax.grid(True, alpha=0.3)
 
@@ -182,37 +157,3 @@ def find_xor(a:str, b:str) -> str:
     for i in range(1, n):  # Skip first bit (CRC standard)
         result += '0' if a[i] == b[i] else '1'
     return result
-
-def graph_constellation_8qam(data):
-    """
-    Gera o gráfico para o sinal modulado em 8-QAM.
-
-    Parâmetro:
-    • sinal: lista de tuplas (I, Q) representando o sinal modulado.
-
-    Retorna:
-    • matplotlib.figure.Figure: Objeto Figure do matplotlib contendo o gráfico.
-    """
-    # Separa as componentes I e Q em listas separadas
-    I = [ponto[0] for ponto in data]  # Eixo X: componente em fase
-    Q = [ponto[1] for ponto in data]  # Eixo Y: componente em quadratura
-
-    fig, ax = plt.subplots(figsize=(6, 6))
-    
-    # Plota os pontos no plano I-Q
-    ax.scatter(I, Q, color='blue', s=80, edgecolors='black')  # Pontos grandes com borda preta
-    ax.set_title("Constelação 8-QAM")
-    ax.set_xlabel("Componente I (In-Phase)")
-    ax.set_ylabel("Componente Q (Quadrature)")
-    ax.grid(True, linestyle='--', alpha=0.6)
-
-    # Ajusta os limites para ver os pontos da constelação
-    ax.set_xlim(-2, 2)
-    ax.set_ylim(-2, 2)
-
-    # Marca o centro
-    ax.axhline(0, color='gray', linewidth=1)
-    ax.axvline(0, color='gray', linewidth=1)
-
-    fig.tight_layout()
-    return fig
