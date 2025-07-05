@@ -2,6 +2,7 @@ import Utils
 import numpy as np
 
 class CamadaFisica:
+    @staticmethod
     def codficador_banda_base(tipo, dado):
         """
         Escolhe e executa algum tipo de codificação de banda base.
@@ -22,7 +23,7 @@ class CamadaFisica:
             return CamadaFisica.codificar_bipolar(dado)
         raise ValueError(f"Tipo de codificação inválida: {tipo}")
    
-   
+    @staticmethod
     def decodificador_banda_base(tipo, dado):
         decoded_msg = ''
         if(tipo == "NRZ-Polar"):
@@ -34,6 +35,7 @@ class CamadaFisica:
         raise ValueError(f"Tipo de codificação inválida: {tipo}")
 
 
+    @staticmethod
     def modulador(tipo, dado):
         modulated_msg = ''
         if(tipo == "FSK"):
@@ -45,6 +47,7 @@ class CamadaFisica:
         raise ValueError(f"Tipo de modução inválida: {tipo}")
     
 
+    @staticmethod
     def codificar_nrz_polar(dado: bytes) -> list:
         """
         Transforma sequência de bytes em um sinal codificado NRZ-Polar.
@@ -76,6 +79,7 @@ class CamadaFisica:
         return sinal
 
 
+    @staticmethod
     def decodificar_nrz_polar(sinal_digital:list) -> bytes:
         """
         Decodifica um sinal digital codificado com NRZ-Polar.
@@ -122,6 +126,7 @@ class CamadaFisica:
         return quadro
 
 
+    @staticmethod
     def codificar_manchester(dado:bytes) -> list:
         """
         Transforma sequência de bytes em um sinal codificado Manchester.
@@ -161,6 +166,7 @@ class CamadaFisica:
         return sinal
 
 
+    @staticmethod
     def decodificar_manchester(sinal_digital:list) -> bytes:
         """
         Decodifica um sinal codificado em Manchester, recuperando os bytes originais.
@@ -196,6 +202,7 @@ class CamadaFisica:
         return bytes_recuperados
 
 
+    @staticmethod
     def codificar_bipolar(quadro:bytes) -> list:
         """
         Transforma uma sequência de bytes em um sinal codificado no formato bipolar AMI (Alternate Mark Inversion).
@@ -227,6 +234,7 @@ class CamadaFisica:
         return sinal
 
 
+    @staticmethod
     def decodificar_bipolar(sinal: list) -> bytes:
         """
         Transforma um sinal codificado em bipolar de volta em bytes.
@@ -270,7 +278,7 @@ class CamadaFisica:
         # Converte os blocos para bytes
         return bytes(int(bloco, 2) for bloco in blocos)
 
-
+    @staticmethod
     def modular_fsk(quadro: bytes, f0=2, f1=5, amostras_por_bit=100, fs=800) -> list:
         """
         Modula um quadro usando FSK (Frequency Shift Keying).
@@ -299,7 +307,7 @@ class CamadaFisica:
 
         return sinal_modulado
 
-
+    @staticmethod
     def modular_ask(quadro: bytes, amostras_por_bit: int = 100, fs: int = 800) -> list:
         """
         Gera um sinal modulado em ASK (Amplitude Shift Keying) com ciclo completo por bit.
@@ -334,7 +342,7 @@ class CamadaFisica:
                 
         return sinal_modulado
     
-
+    @staticmethod
     def modular_8qam(quadro: bytes) -> list:
         """
         Modula um sinal digital usando 8-QAM.
