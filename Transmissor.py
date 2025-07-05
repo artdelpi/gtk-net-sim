@@ -102,35 +102,3 @@ class Transmissor:
                     s.sendall(serialized_data)
 
                     print("Mensagem enviada com sucesso!") # Confirma envio
-
-
-#  =============================
-#         DEPURAÇÃO LOCAL
-#  =============================
-
-if __name__ == "__main__":
-    # Cria as filas de comunicação
-    in_queue = Queue()
-    gui_queue = Queue()
-
-    # Define os dados de entrada (simulando a camada de aplicação)
-    data = {
-        "entrada": "teste",                         # Mensagem que será transmitida
-        "enquadramento": "FLAGS e inserção de bytes ou caracteres",  # Tipo de enquadramento
-        "mod_digital": "Bipolar",                   # Tipo de modulação digital
-        "mod_analogica": "8-QAM",                # Tipo de modulação analógica
-        'edc': 0,
-        'detecao': 'Tipo 1'
-    }
-
-    # Coloca os dados na fila de entrada do transmissor
-    in_queue.put(data)
-    in_queue.put("SAIR") # Encerra depois de uma execução
-
-    # Instancia o transmissor e inicia
-    transmissor = Transmissor(in_queue, gui_queue)
-    transmissor.start()
-
-    # Imprime todos os valores da fila GUI (resultado das etapas de transmissão)
-    while not transmissor.gui_queue.empty():
-        print(transmissor.gui_queue.get())

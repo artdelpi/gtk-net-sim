@@ -98,8 +98,6 @@ def graph_generator(data, title, signal_type):
             # SINAL DIGITAL (BANDA BASE)
             # ==========================
             amostras = 100  # Cada bit será representado por 100 amostras
-            
-            # Expande o sinal para "degrafiar" os bits no tempo (sinal degrau)
             data_expandido = np.repeat(data, amostras)
             
             # Cria o eixo X com uma amostra extra no final para manter o degrau no fim

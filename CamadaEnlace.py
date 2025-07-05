@@ -106,7 +106,7 @@ class Enlace:
         return quadro[1:] # Remove primeiro byte
 
 
-    def enquadrar_flag_insercao_byte(dado:bytes, flag='flag', esc='esc') -> bytes:
+    def enquadrar_flag_insercao_byte(dado:bytes, flag=b'\x7E', esc=b'\x7D') -> bytes:
         """
         Enquadramento por insercao de bytes.
 
@@ -117,28 +117,27 @@ class Enlace:
 
         Parâmetros:
         • quadro (bytes): Quadro com o byte de tamanho seguido do payload.
-        • flag (string): flag de sinal.
-        • esc (string): caracrtere de escape.
+        • flag (bytes): Flag de sinal.
+        • esc (bytes): caractere de escape.
 
         Retorna:
         • bytes: Apenas o payload (dados da camada de aplicação).
         """
-        dado = dado.decode("utf-8")
         if flag in dado:
            esc_pos = Utils.findall(esc, dado)
            for pos in range(0, len(esc_pos)):
                offset = len(esc) * pos
                
-               dado = dado[:(esc_pos[pos] + offset)] + 'esc' + dado[(esc_pos[pos] + offset):]
+               dado = dado[:(esc_pos[pos] + offset)] + esc + dado[(esc_pos[pos] + offset):]
 
            flag_pos = Utils.findall(flag, dado)
            for pos in range(0, len(flag_pos)):
                offset = len(esc) * pos
-               dado = dado[:(flag_pos[pos] + offset)] + 'esc' + dado[(flag_pos[pos] + offset):]            
-        return (flag + dado + flag).encode()
+               dado = dado[:(flag_pos[pos] + offset)] + esc + dado[(flag_pos[pos] + offset):]            
+        return (flag + dado + flag)
 
 
-    def desenquadrar_flag_insercao_byte(quadro: bytes, flag='flag', esc='esc') -> bytes:
+    def desenquadrar_flag_insercao_byte(quadro: bytes, flag=b'\x7E', esc='\x7D') -> bytes:
         """
         Desenquadramento por insercao de bytes.
 
@@ -169,7 +168,7 @@ class Enlace:
         if len_quadro < 2 * len_flag:
             raise ValueError("Quadro muito curto")
 
-        if not (quadro_str.startswith(flag) and quadro_str.endswith(flag)):
+        if not (quadro.startswith(flag) and quadro.endswith(flag)):
             raise ValueError("Flags de início/fim ausentes")
 
         # Remove flags externas

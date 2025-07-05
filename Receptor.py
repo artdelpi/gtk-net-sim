@@ -59,17 +59,18 @@ class Receptor:
 
                     self.processar(data)
 
+
     def processar(self, data):
         time.sleep(2) # Espera 2 segundos pra processar o sinal (Efeito visual na GUI)
 
         try:
             # Extrai sinais e parâmetros de comunicação
-            sinal_digital = data["encoded_signal"]      # Sinal digital (codificado em NRZ-Polar, Bipolar ou Manchester)
-            sinal_modulado = data["modulated_signal"]   # Sinal analógico (modulado em FSK, ASK ou 8-QAM)
+            sinal_digital = data["encoded_signal"]      # Sinal digital (codificado em NRZ-Polar, Bipolar ou Manchester). Ex: [-1, -1, 1, -1, 1, 1...]
+            sinal_modulado = data["modulated_signal"]   # Sinal analógico (modulado em FSK, ASK ou 8-QAM). Ex: [0, 0, 0.0627, 0.125...] 
             params = {
-                "tipo_mod_analogica": data["mod_analogica"],    # Ex: [0, 0, 0.0627, 0.125...] 
-                "tipo_mod_digital": data["mod_digital"],        # Ex: [-1, -1, 1, -1, 1, 1...]
-                "tipo_enquadramento": data["enquadramento"],    # Ex: "NRZ-Polar", "Bipolar", "Manchester"
+                "tipo_mod_analogica": data["mod_analogica"],    # Ex: "FSK", "ASK", "8-QAM"
+                "tipo_mod_digital": data["mod_digital"],        # Ex: "NRZ-Polar", "Bipolar", "Manchester"
+                "tipo_enquadramento": data["enquadramento"],    # Ex: "Contagem de caracteres"...
                 "tipo_detecao": data["detecao"],                # Tipo de detecção de erro. Ex: 
                 "tamanho_do_edc": data["edc"],                  # Ex: 8, 16, 24... (Caso use CRC)
                 "erros": float(data["erros"])                   # Nível de ruído (σ). Ex: 0.10, 0.20, 0.30...
