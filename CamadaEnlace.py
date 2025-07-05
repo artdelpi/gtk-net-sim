@@ -304,23 +304,9 @@ class Enlace:
         • bytes: Dados codificados com código Hamming (7,4)
         """
         def calcular_bits_paridade(bits_dados: list) -> tuple:
-            """
-            Calcula os 3 bits de paridade com base em 4 bits de dados.
-
-            Fórmulas usadas no Hamming(7,4):
-                p1 = d1 ⊕ d2 ⊕ d4
-                p2 = d1 ⊕ d3 ⊕ d4
-                p3 = d2 ⊕ d3 ⊕ d4
-            
-            Parâmetros:
-            • bits_dados (List[int]): Lista de 4 bits, representando os bits de dados.
-
-            Retorna:
-            • Tuple[int, int, int]: Tupla com os três bits de paridade (p1, p2, p3).
-            """
-            p1 = bits_dados[0] ^ bits_dados[1] ^ bits_dados[3]
-            p2 = bits_dados[0] ^ bits_dados[2] ^ bits_dados[3]
-            p3 = bits_dados[1] ^ bits_dados[2] ^ bits_dados[3]
+            p1 = bits_dados[0] ^ bits_dados[1] ^ bits_dados[3]  # p1 = d1 ⊕ d2 ⊕ d4
+            p2 = bits_dados[0] ^ bits_dados[2] ^ bits_dados[3]  # p2 = d1 ⊕ d3 ⊕ d4
+            p3 = bits_dados[1] ^ bits_dados[2] ^ bits_dados[3]  # p3 = d2 ⊕ d3 ⊕ d4
             return p1, p2, p3
 
         codificacao_bytes = [] # Lista que vai armazenar os bytes codificados
@@ -347,6 +333,7 @@ class Enlace:
                     bits_dados[3]
                 ]
 
+                # Converte os 7 bits para um byte (bit mais significativo não usado)
                 byte_codificado = 0
                 for i, bit in enumerate(bloco_hamming):
                     byte_codificado |= bit << (6 - i) # Alinha o bit na posição certa
@@ -356,6 +343,55 @@ class Enlace:
 
         # Converte a lista para bytes e retorna
         return bytes(codificacao_bytes)
+
+
+    def verifica_hamming(quadro: bytes) -> bytes:
+        """
+        Verifica e corrige os dados codificados com o código de Hamming (7,4).
+
+        Parâmetros:
+            quadro (bytes): Dados codificados com Hamming (7,4).
+
+        Retorna:
+            bytes: Dados corrigidos e decodificados (sem bits de paridade).
+        """
+        dados_decodificados = []
+
+        for byte in quadro:
+            # Obtém os bits do byte codificado (7 bits úteis)
+            bits = [(byte >> (6 - i)) & 1 for i in range(7)]
+
+            # Bits de paridade e dados:
+            p1, p2, d1, p3, d2, d3, d4 = bits
+
+            # Calcula os bits de paridade esperados
+            s1 = p1 ^ d1 ^ d2 ^ d4
+            s2 = p2 ^ d1 ^ d3 ^ d4
+            s3 = p3 ^ d2 ^ d3 ^ d4
+
+            # Síndrome (posição do erro)
+            erro_pos = (s3 << 2) | (s2 << 1) | s1
+
+            # Corrige o erro se for em bit de dado (posições 3,5,6,7)
+            if erro_pos in {3, 5, 6, 7}:
+                bits[erro_pos - 1] ^= 1  # Inverte o bit errado
+                # Atualiza os bits após correção
+                p1, p2, d1, p3, d2, d3, d4 = bits
+
+            # Reconstrói o nibble (4 bits de dados)
+            nibble = (d1 << 3) | (d2 << 2) | (d3 << 1) | d4
+            dados_decodificados.append(nibble)
+
+        # Combina nibbles para formar bytes originais
+        bytes_decodificados = bytearray()
+        for i in range(0, len(dados_decodificados), 2):
+            if i + 1 < len(dados_decodificados):
+                byte = (dados_decodificados[i] << 4) | dados_decodificados[i + 1]
+            else:
+                byte = dados_decodificados[i] << 4  # Último nibble (preenche com 0)
+            bytes_decodificados.append(byte)
+
+        return bytes(bytes_decodificados)
 
         
     def bit_de_paridade_par(quadro:bytes) -> bytes:
@@ -389,6 +425,7 @@ class Enlace:
             return quadro + b"\x01"
         else:
             return quadro + b"\x00"
+
 
     def verifica_bit_de_paridade_par(quadro:bytes) -> bytes:
         """
