@@ -59,7 +59,7 @@ def graph_generator(data, title, signal_type):
             # Título, labels e grid
             ax.set_title(title)
             x_label = "T (Tempo de Bit)"
-            if title == "Sinal Analógico Modulado em (8-QAM)":
+            if title == "Sinal Analógico Modulado em (8-QAM)" or title == "Sinal Analógico Recebido em (8-QAM)":
                 x_label = "T (Tempo de Símbolo)"
             ax.set_xlabel(x_label)
             ax.set_ylabel("Amplitude")

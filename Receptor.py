@@ -72,7 +72,7 @@ class Receptor:
                 "tipo_mod_analogica": data["mod_analogica"],    # Ex: "FSK", "ASK", "8-QAM"
                 "tipo_mod_digital": data["mod_digital"],        # Ex: "NRZ-Polar", "Bipolar", "Manchester"
                 "tipo_enquadramento": data["enquadramento"],    # Ex: "Contagem de caracteres"...
-                "tipo_detecao": data["detecao"],                # Tipo de detecção de erro. Ex: 
+                "tipo_detecao": data["detecao"],                # Tipo de detecção de erro. Ex: "Hamming", "CRC", "Bit de paridade par" 
                 "tamanho_do_edc": data["edc"],                  # Ex: 8, 16, 24... (Caso use CRC)
                 "erros": float(data["erros"])                   # Nível de ruído (σ). Ex: 0.10, 0.20, 0.30...
             }
@@ -132,7 +132,7 @@ class Receptor:
                 "fisica", 
                 graph_generator(sinal_modulado, f"Sinal Analógico Recebido em ({tipo_mod_analogica})", 'sinal_analogico')
             ])
-
+            print(f"Sinal Analógico Recebido em ({tipo_mod_analogica})")
             # Exibe sinal digital
             self.gui_queue.put([
                 "fisica", 
@@ -159,8 +159,9 @@ class Receptor:
             # Exibe quadro com EDC
             self.gui_queue.put(["enlace", f"Quadro com EDC: {byte_formarter(quadro_bytes)}"])
 
-            # Tenta verificar e remover o EDC
+            # Tenta verificar e remover o EDC e exibe o quadro resultante
             try:
+                # Verifica se houve erro e recupera o quadro sem o EDC
                 quadro_sem_edc = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
                 self.gui_queue.put(["enlace", f"Quadro sem EDC: {byte_formarter(quadro_sem_edc)}"])
             except Exception as e:
@@ -173,34 +174,38 @@ class Receptor:
             # Exibe quadro antes e depois do desenquadramento
             self.gui_queue.put(["enlace", f"Quadro antes do desenquadramento: {byte_formarter(quadro_sem_edc)}"])
 
+            # Tenta desenquadrar o quadro e exibe o resultado
             try:
+                # Desenquadra quadro pra recuperar msg da camada de aplicação
                 quadro_desenquadrado = Enlace.desenquadramento(tipo_enquadramento, quadro_sem_edc)
                 self.gui_queue.put(["enlace", f"Quadro desenquadrado (dados originais): {byte_formarter(quadro_desenquadrado)}"])
             except Exception as e:
                 quadro_desenquadrado = quadro_sem_edc  # Mantém como estava se falhar
                 self.gui_queue.put(["enlace", f"Erro ao desenquadrar quadro: {e}"])
-
         except Exception as e:
             self.gui_queue.put(["enlace", f"Erro ao processar camada de enlace: {e}"])
 
 
     def exibir_camada_aplicacao(self, quadro_bytes, params) -> None:
         """Processa e exibe as informações da camada de aplicação"""
-        tipo_enquadramento = params["tipo_enquadramento"] # Recupera tipo de enquadramento
-        tipo_detecao = params["tipo_detecao"]             # Recupera tipo de detecção de erros
-        tamanho_do_edc = params["tamanho_do_edc"]         # Recupera tamanho do EDC
+        try:    
+            tipo_enquadramento = params["tipo_enquadramento"] # Recupera tipo de enquadramento
+            tipo_detecao = params["tipo_detecao"]             # Recupera tipo de detecção de erros
+            tamanho_do_edc = params["tamanho_do_edc"]         # Recupera tamanho do EDC
 
-        # Remove EDC do quadro
-        quadro_sem_edc = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
+            # Remove EDC do quadro
+            quadro_sem_edc = Enlace.verificar_edc(tipo_detecao, quadro_bytes, tamanho_do_edc)
 
-        # Desenquadra quadro e recupera mensagem original
-        msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_sem_edc)
-        
-        # Exibe mensagem da aplicação em bits
-        self.gui_queue.put(["aplicacao", f"Mensagem recebida (bits): {byte_formarter(msg_bytes)}"])
+            # Desenquadra quadro e recupera mensagem original
+            msg_bytes = Enlace.desenquadramento(tipo_enquadramento, quadro_sem_edc)
+            
+            # Exibe mensagem da aplicação em bits
+            self.gui_queue.put(["aplicacao", f"Mensagem recebida (bits): {byte_formarter(msg_bytes)}"])
 
-        # Exibe mensagem da aplicação em bytes
-        self.gui_queue.put(["aplicacao", f"Mensagem recebida: {msg_bytes}"])
+            # Exibe mensagem da aplicação em bytes
+            self.gui_queue.put(["aplicacao", f"Mensagem recebida: {msg_bytes}"])
+        except Exception as e:
+            self.gui_queue.put(["enlace", f"Erro ao processar camada de aplicação: {e}"])
 
 
     def stop(self):
