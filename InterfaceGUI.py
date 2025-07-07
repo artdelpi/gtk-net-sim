@@ -28,7 +28,6 @@ class Simulador(Gtk.Window):
             config_grid.attach(widget, 1, row, 1, 1)
 
         self.entrada_texto = Gtk.Entry()
-        self.tamanho_quadro = Gtk.SpinButton()
         self.edc = Gtk.SpinButton()
         self.enquadramento = Gtk.ComboBoxText()
         self.detecao = Gtk.ComboBoxText()
@@ -39,7 +38,6 @@ class Simulador(Gtk.Window):
 
         widgets = [
             ("Entrada de texto", self.entrada_texto),
-            ("Tamanho máximo de quadro", self.tamanho_quadro),
             ("Tamanho do EDC", self.edc),
             ("Tipo de enquadramento", self.enquadramento),
             ("Tipo de detecção ou correção", self.detecao),
@@ -54,7 +52,6 @@ class Simulador(Gtk.Window):
 
         self.edc.set_adjustment(Gtk.Adjustment(lower=8, upper=256, step_increment=8, page_increment=8))
         self.edc.set_value(8)  # Valor padrão inicial
-        self.tamanho_quadro.set_adjustment(Gtk.Adjustment(upper=100, step_increment=1, page_increment=10))
         self.erros.set_adjustment(Gtk.Adjustment(lower=0, upper=100, step_increment=0.1, page_increment=1))
         self.erros.set_digits(2)
 
@@ -142,7 +139,6 @@ class Simulador(Gtk.Window):
 
         self.out_queue.put({
             "entrada": self.entrada_texto.get_text(),
-            "quadro": self.tamanho_quadro.get_value_as_int(),
             "edc": self.edc.get_value_as_int(),
             "enquadramento": self.enquadramento.get_active_text(),
             "detecao": self.detecao.get_active_text(),
