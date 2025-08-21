@@ -8,7 +8,7 @@ from src.CamadaEnlace import Enlace
 from src.Utils import byte_formarter, graph_generator
 
 class Receptor:
-    def __init__(self, host="localhost", port=711, gui_queue=Queue()):
+    def __init__(self, host="localhost", port=27111, gui_queue=Queue()):
         self.host = host
         self.port = port
         self.gui_queue = gui_queue
@@ -46,7 +46,7 @@ class Receptor:
                     raw_data = b""
 
                     while True:
-                        packet = conn.recv(4096) # Lê até 4096 bytes por vez na porta 711
+                        packet = conn.recv(4096) # Lê até 4096 bytes por vez na porta 27111
                         if not packet:
                             break # Encerra a conexão se não tiver mais dados
                         raw_data += packet # Acumula dados no buffer

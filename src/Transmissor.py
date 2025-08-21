@@ -60,7 +60,7 @@ class Transmissor:
 
                 # Transmissão da Mensagem: Conecta com o Receptor
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect(("localhost", 711))  # Porta e host iguais ao do receptor
+                    s.connect(("localhost", 27111))  # Porta e host iguais ao do receptor
 
                     # Dados dos sinais e configurações
                     msg_dict = {
@@ -77,7 +77,7 @@ class Transmissor:
                     # Serializa o dicionário em bytes para envio
                     serialized_data = pickle.dumps(msg_dict)
 
-                    # Envia os dados pra porta 711 do servidor localhost
+                    # Envia os dados pra porta 27111 do servidor localhost
                     s.sendall(serialized_data)
 
                     print("Mensagem enviada com sucesso!") # Confirma envio
